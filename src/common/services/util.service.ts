@@ -7,6 +7,18 @@ export class UntilService {
     return Math.floor(Date.now() / 1000);
   }
 
+  mapper<T, U>(source: T): U {
+    const target = {} as U;
+
+    Object.keys(source).forEach((key) => {
+      if (source[key] !== undefined) {
+        (target as any)[key] = source[key];
+      }
+    });
+
+    return target;
+  }
+
   buildSuccessResponse(data: unknown): NormalResponse {
     return {
       code: HttpStatus.OK,
