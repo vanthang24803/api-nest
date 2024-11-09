@@ -1,8 +1,10 @@
-import { Roles, Users } from "@/database/entities";
-import { RegisterRequest } from "@/modules/auth/dto/register.request";
+import { Role, Token, User } from "@/database/entities";
+import { RegisterRequest, RefreshToken } from "@/modules/auth/dto";
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -11,30 +13,29 @@ import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
-import { Role } from "@/shared";
-import {
-  JwtPayload,
-  JwtSign,
-  Payload,
-} from "@/shared/interfaces/jwt.interface";
+import { Role as RoleEnum } from "@/shared";
+import { JwtPayload, JwtSign, Payload } from "@/shared/interfaces";
+import { UntilService } from "../services";
 
 @Injectable()
 export class AuthenticationService {
   private secretKey: string;
   private refreshKey: string;
-  private nodeEnv: string;
-  private readonly SECRET_COOKIES = "Secret";
-  private readonly REFRESH_COOKIES = "Refresh";
 
   constructor(
+    private readonly logger: Logger,
     private readonly jwt: JwtService,
     private readonly configService: ConfigService,
-    @InjectRepository(Users) private readonly userRepository: Repository<Users>,
-    @InjectRepository(Roles) private readonly roleRepository: Repository<Roles>,
+    private readonly util: UntilService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Token)
+    private readonly tokenRepository: Repository<Token>,
   ) {
     this.secretKey = this.configService.get<string>("JWT_SECRET");
     this.refreshKey = this.configService.get<string>("JWT_REFRESH");
-    this.nodeEnv = this.configService.get("NODE_ENV");
   }
 
   public async register(request: RegisterRequest) {
@@ -47,7 +48,7 @@ export class AuthenticationService {
 
     const customerRole = await this.roleRepository.findOne({
       where: {
-        role: Role.Customer,
+        role: RoleEnum.Customer,
       },
     });
 
@@ -70,10 +71,13 @@ export class AuthenticationService {
   public async validateUser(
     email: string,
     password: string,
-  ): Promise<Users | null> {
+  ): Promise<User | null> {
     const account = await this.userRepository.findOne({
       where: {
         email,
+      },
+      relations: {
+        roles: true,
       },
     });
 
@@ -87,7 +91,7 @@ export class AuthenticationService {
     return null;
   }
 
-  public async findUser(payload: JwtPayload): Promise<Users | null> {
+  public async findUser(payload: JwtPayload): Promise<User | null> {
     const user = await this.userRepository.findOne({
       where: {
         id: payload.sub,
@@ -99,13 +103,20 @@ export class AuthenticationService {
     return user;
   }
 
-  public jwtSign(data: Payload): JwtSign {
+  public async jwtSign(data: Payload): Promise<JwtSign> {
     const payload: JwtPayload = {
-      ...data,
+      payload: { ...data },
       sub: data.id,
     };
 
-    return {
+    const token = await this.tokenRepository.findOne({
+      where: {
+        name: "Refresh",
+        userId: payload.sub,
+      },
+    });
+
+    const result = {
       accessToken: this.jwt.sign(payload, {
         secret: this.secretKey,
         expiresIn: "7d",
@@ -115,5 +126,67 @@ export class AuthenticationService {
         expiresIn: "30d",
       }),
     };
+
+    if (!token) {
+      await this.tokenRepository.save({
+        name: "Refresh",
+        value: result.refreshToken,
+        userId: payload.sub,
+      });
+    } else {
+      await this.tokenRepository.update(token.id, {
+        value: result.refreshToken,
+      });
+    }
+
+    return result;
+  }
+
+  public async refreshToken(request: RefreshToken) {
+    try {
+      const payload: JwtPayload = this.jwt.verify(request.token, {
+        secret: this.refreshKey,
+      });
+
+      const refreshToken = await this.tokenRepository.findOne({
+        where: {
+          userId: payload.sub,
+          name: "Refresh",
+        },
+      });
+
+      if (!refreshToken) throw new ForbiddenException();
+
+      const { exp, ...payloadWithoutExp } = payload;
+
+      const accessToken = this.jwt.sign(payloadWithoutExp, {
+        secret: this.secretKey,
+        expiresIn: "7d",
+      });
+
+      if (exp && exp > this.util.getCurrentTime()) {
+        return {
+          accessToken,
+          refreshToken: refreshToken.value,
+        };
+      } else {
+        const newRefreshToken = this.jwt.sign(payloadWithoutExp, {
+          secret: this.refreshKey,
+          expiresIn: "30d",
+        });
+
+        await this.tokenRepository.update(refreshToken.id, {
+          value: newRefreshToken,
+        });
+
+        return {
+          accessToken,
+          refreshToken: newRefreshToken,
+        };
+      }
+    } catch (err) {
+      this.logger.error(err);
+      throw new UnauthorizedException(err);
+    }
   }
 }

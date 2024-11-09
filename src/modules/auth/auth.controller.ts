@@ -8,13 +8,12 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { RegisterRequest } from "./dto/register.request";
 import { ApiTags } from "@nestjs/swagger";
 import { NormalResponse } from "@/shared";
-import { LoginRequest } from "./dto/login.request";
 import { CurrentUser } from "@/common/decorators";
 import { JwtAuthGuard } from "@/common/guards";
 import { Logger } from "@nestjs/common";
+import { RefreshToken, LoginRequest, RegisterRequest } from "./dto";
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -36,6 +35,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   public async login(@Body() request: LoginRequest): Promise<NormalResponse> {
     return await this.authService.login(request);
+  }
+
+  @Post("refresh")
+  @HttpCode(HttpStatus.OK)
+  public async refreshToken(
+    @Body() request: RefreshToken,
+  ): Promise<NormalResponse> {
+    return await this.authService.refreshToken(request);
   }
 
   @Get("me")

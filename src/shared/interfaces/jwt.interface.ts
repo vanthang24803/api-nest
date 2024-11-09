@@ -2,6 +2,7 @@ export interface Payload {
   id: string;
   fullName: string;
   avatar: string;
+  roles: string[];
 }
 
 export interface JwtSign {
@@ -11,6 +12,7 @@ export interface JwtSign {
 
 export interface JwtPayload {
   sub: string;
-  fullName: string;
-  avatar: string;
+  payload: Payload;
+  exp?: number;
+  iat?: number;
 }

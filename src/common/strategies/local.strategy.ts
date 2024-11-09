@@ -19,12 +19,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    console.log(user);
-
     return {
       id: user.id,
       avatar: user.avatar,
       fullName: `${user.firstName} ${user.lastName}`,
+      roles: user.roles.map((item) => item.role),
     };
   }
 }

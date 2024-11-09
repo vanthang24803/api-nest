@@ -4,12 +4,14 @@ import {
   Column,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
-import { Roles } from "./role.entity";
+import { Role } from "./role.entity";
+import { Token } from "./token.entity";
 
 @Entity("users")
-export class Users extends CustomBaseEntity {
+export class User extends CustomBaseEntity {
   @PrimaryGeneratedColumn("uuid", {
     name: "id",
   })
@@ -48,7 +50,10 @@ export class Users extends CustomBaseEntity {
   })
   email!: string;
 
-  @ManyToMany(() => Roles, (roles) => roles.users)
+  @OneToMany(() => Token, (token) => token.user)
+  tokens: Token[];
+
+  @ManyToMany(() => Role, (role) => role.User)
   @JoinTable({
     name: "users_roles",
     joinColumn: {
@@ -60,5 +65,5 @@ export class Users extends CustomBaseEntity {
       referencedColumnName: "id",
     },
   })
-  roles!: Roles[];
+  roles!: Role[];
 }

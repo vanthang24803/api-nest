@@ -1,8 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { NormalResponse, Payload } from "@/shared";
 import { UntilService, AuthenticationService } from "@/common";
-import { RegisterRequest } from "./dto/register.request";
-import { LoginRequest } from "./dto/login.request";
+import { RegisterRequest, LoginRequest, RefreshToken } from "./dto";
 
 @Injectable()
 export class AuthService {
@@ -19,7 +18,7 @@ export class AuthService {
     );
   }
 
-  public async login(loginRequest: LoginRequest) {
+  public async login(loginRequest: LoginRequest): Promise<NormalResponse> {
     const check = await this.authenticationService.validateUser(
       loginRequest.email,
       loginRequest.password,
@@ -31,10 +30,19 @@ export class AuthService {
       id: check.id,
       fullName: `${check.firstName} ${check.lastName}`,
       avatar: check.avatar,
+      roles: check.roles.map((item) => item.role),
     };
 
     return this.util.buildSuccessResponse(
-      this.authenticationService.jwtSign(payload),
+      await this.authenticationService.jwtSign(payload),
+    );
+  }
+
+  public async refreshToken(
+    refreshToken: RefreshToken,
+  ): Promise<NormalResponse> {
+    return this.util.buildSuccessResponse(
+      await this.authenticationService.refreshToken(refreshToken),
     );
   }
 }
