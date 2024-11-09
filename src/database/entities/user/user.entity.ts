@@ -1,11 +1,16 @@
-import { Column, Entity, ManyToMany, PrimaryColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  JoinTable,
+} from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
 import { Roles } from "./role.entity";
 
-@Entity("user")
+@Entity("users")
 export class Users extends CustomBaseEntity {
-  @PrimaryColumn({
-    type: "uuid",
+  @PrimaryGeneratedColumn("uuid", {
     name: "id",
   })
   id!: string;
@@ -30,6 +35,12 @@ export class Users extends CustomBaseEntity {
   })
   password!: string;
 
+  @Column("text", {
+    nullable: true,
+    name: "avatar",
+  })
+  avatar?: string;
+
   @Column("varchar", {
     nullable: true,
     length: 255,
@@ -37,6 +48,17 @@ export class Users extends CustomBaseEntity {
   })
   email!: string;
 
-  @ManyToMany(() => Roles, (roles) => roles.id)
+  @ManyToMany(() => Roles, (roles) => roles.users)
+  @JoinTable({
+    name: "users_roles",
+    joinColumn: {
+      name: "user_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "role_id",
+      referencedColumnName: "id",
+    },
+  })
   roles!: Roles[];
 }
