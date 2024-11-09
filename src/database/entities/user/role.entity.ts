@@ -1,10 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
-import { Role } from "@/shared/enums";
-import { Users } from "./user.entity";
+import { Role as RoleEnum } from "@/shared/enums";
+import { User } from "./user.entity";
 
 @Entity("roles")
-export class Roles extends CustomBaseEntity {
+export class Role extends CustomBaseEntity {
   @PrimaryGeneratedColumn("uuid", {
     name: "id",
   })
@@ -12,12 +12,12 @@ export class Roles extends CustomBaseEntity {
 
   @Column({
     type: "enum",
-    enum: Role,
-    default: Role.Customer,
+    enum: RoleEnum,
+    default: RoleEnum.Customer,
     name: "role",
   })
-  role!: Role;
+  role!: RoleEnum;
 
-  @ManyToMany(() => Users, (user) => user.roles)
-  users!: Users[];
+  @ManyToMany(() => User, (user) => user.roles)
+  User!: User[];
 }

@@ -1,11 +1,18 @@
-import { Column, Entity, ManyToMany, PrimaryColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  JoinTable,
+  OneToMany,
+} from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
-import { Roles } from "./role.entity";
+import { Role } from "./role.entity";
+import { Token } from "./token.entity";
 
-@Entity("user")
-export class Users extends CustomBaseEntity {
-  @PrimaryColumn({
-    type: "uuid",
+@Entity("users")
+export class User extends CustomBaseEntity {
+  @PrimaryGeneratedColumn("uuid", {
     name: "id",
   })
   id!: string;
@@ -30,6 +37,12 @@ export class Users extends CustomBaseEntity {
   })
   password!: string;
 
+  @Column("text", {
+    nullable: true,
+    name: "avatar",
+  })
+  avatar?: string;
+
   @Column("varchar", {
     nullable: true,
     length: 255,
@@ -37,6 +50,20 @@ export class Users extends CustomBaseEntity {
   })
   email!: string;
 
-  @ManyToMany(() => Roles, (roles) => roles.id)
-  roles!: Roles[];
+  @OneToMany(() => Token, (token) => token.user)
+  tokens: Token[];
+
+  @ManyToMany(() => Role, (role) => role.User)
+  @JoinTable({
+    name: "users_roles",
+    joinColumn: {
+      name: "user_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "role_id",
+      referencedColumnName: "id",
+    },
+  })
+  roles!: Role[];
 }

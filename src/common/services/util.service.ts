@@ -3,6 +3,10 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class UntilService {
+  getCurrentTime() {
+    return Math.floor(Date.now() / 1000);
+  }
+
   buildSuccessResponse(data: unknown): NormalResponse {
     return {
       code: HttpStatus.OK,
