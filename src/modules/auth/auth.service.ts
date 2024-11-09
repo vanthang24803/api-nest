@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { NormalResponse, Payload } from "@/shared";
 import { UntilService, AuthenticationService } from "@/common";
 import { RegisterRequest, LoginRequest, RefreshToken } from "./dto";
+import { User } from "@/database/entities";
 
 @Injectable()
 export class AuthService {
@@ -35,6 +36,24 @@ export class AuthService {
 
     return this.util.buildSuccessResponse(
       await this.authenticationService.jwtSign(payload),
+    );
+  }
+
+  public async logout(user: User): Promise<NormalResponse> {
+    const isLogoutSuccess = await this.authenticationService.logout(user);
+
+    if (isLogoutSuccess) {
+      return this.util.buildSuccessResponse({
+        message: "Logout successfully!",
+      });
+    }
+
+    return this.util.buildCustomResponse(
+      400,
+      {
+        message: "Something went wrong!",
+      },
+      "Logout fail!",
     );
   }
 

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -9,19 +8,16 @@ import {
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { ApiTags } from "@nestjs/swagger";
-import { NormalResponse } from "@/shared";
-import { CurrentUser } from "@/common/decorators";
-import { JwtAuthGuard } from "@/common/guards";
-import { Logger } from "@nestjs/common";
+import { NormalResponse, Role } from "@/shared";
+import { CurrentUser, Roles } from "@/common/decorators";
+import { JwtAuthGuard, RolesGuard } from "@/common/guards";
 import { RefreshToken, LoginRequest, RegisterRequest } from "./dto";
+import { User } from "@/database/entities";
 
 @Controller("auth")
 @ApiTags("Authentication")
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly logger: Logger,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post("register")
   @HttpCode(HttpStatus.CREATED)
@@ -45,10 +41,11 @@ export class AuthController {
     return await this.authService.refreshToken(request);
   }
 
-  @Get("me")
-  @UseGuards(JwtAuthGuard)
-  public me(@CurrentUser() user): Promise<any> {
-    this.logger.log("Hello World");
-    return user;
+  @Post("logout")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.Customer)
+  public async logout(@CurrentUser() user: User): Promise<NormalResponse> {
+    return await this.authService.logout(user);
   }
 }

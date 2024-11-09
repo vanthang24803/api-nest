@@ -96,6 +96,9 @@ export class AuthenticationService {
       where: {
         id: payload.sub,
       },
+      relations: {
+        roles: true,
+      },
     });
 
     if (!user) throw new UnauthorizedException();
@@ -142,7 +145,7 @@ export class AuthenticationService {
     return result;
   }
 
-  public async refreshToken(request: RefreshToken) {
+  public async refreshToken(request: RefreshToken): Promise<JwtSign> {
     try {
       const payload: JwtPayload = this.jwt.verify(request.token, {
         secret: this.refreshKey,
@@ -184,6 +187,26 @@ export class AuthenticationService {
           refreshToken: newRefreshToken,
         };
       }
+    } catch (err) {
+      this.logger.error(err);
+      throw new UnauthorizedException(err);
+    }
+  }
+
+  public async logout(user: User): Promise<boolean> {
+    try {
+      const refreshToken = await this.tokenRepository.findOne({
+        where: {
+          userId: user.id,
+          name: "Refresh",
+        },
+      });
+
+      if (refreshToken) {
+        await this.tokenRepository.delete(refreshToken.id);
+      }
+
+      return true;
     } catch (err) {
       this.logger.error(err);
       throw new UnauthorizedException(err);
