@@ -41,9 +41,6 @@ async function bootstrap() {
       : undefined,
   });
 
-  // TODO: Domain
-  app.setGlobalPrefix("api");
-
   // TODO: Cors
   app.enableCors();
 

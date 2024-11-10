@@ -1,4 +1,4 @@
-import { NormalResponse } from "@/shared";
+import { NormalResponse, Role } from "@/shared";
 import {
   Body,
   Controller,
@@ -7,10 +7,13 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CatalogService } from "./catalog.service";
 import { CatalogRequest } from "./dto";
+import { JwtAuthGuard, RolesGuard } from "@/common/guards";
+import { Roles } from "@/common/decorators";
 
 @Controller("catalog")
 @ApiTags("Catalog")
@@ -23,6 +26,8 @@ export class CatalogController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   public async save(@Body() request: CatalogRequest): Promise<NormalResponse> {
     return await this.catalogService.save(request);
   }
@@ -33,6 +38,8 @@ export class CatalogController {
   }
 
   @Put(":id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   public async update(
     @Param("id") id: string,
     @Body() request: CatalogRequest,
@@ -41,6 +48,8 @@ export class CatalogController {
   }
 
   @Delete(":id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   public async remove(@Param("id") id: string): Promise<NormalResponse> {
     return await this.catalogService.remove(id);
   }

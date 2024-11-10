@@ -1,5 +1,6 @@
 import { NormalResponse } from "@/shared/interfaces";
 import { HttpStatus, Injectable } from "@nestjs/common";
+import { plainToInstance } from "class-transformer";
 
 @Injectable()
 export class UntilService {
@@ -7,23 +8,25 @@ export class UntilService {
     return Math.floor(Date.now() / 1000);
   }
 
-  mapper<T, U>(source: T): U {
-    const target = {} as U;
-
-    Object.keys(source).forEach((key) => {
-      if (source[key] !== undefined) {
-        (target as any)[key] = source[key];
-      }
-    });
-
-    return target;
+  mapToDto<T, U>(entityOrEntities: T | T[], dtoClass: { new (): U }): U | U[] {
+    if (Array.isArray(entityOrEntities)) {
+      return entityOrEntities.map((entity) =>
+        plainToInstance(dtoClass, entity, {
+          excludeExtraneousValues: true,
+        }),
+      );
+    } else {
+      return plainToInstance(dtoClass, entityOrEntities, {
+        excludeExtraneousValues: true,
+      });
+    }
   }
 
   buildSuccessResponse(data: unknown): NormalResponse {
     return {
       code: HttpStatus.OK,
       data,
-      status: "success",
+      isSuccess: true,
     };
   }
 
@@ -31,7 +34,7 @@ export class UntilService {
     return {
       code: HttpStatus.CREATED,
       data,
-      status: "success",
+      isSuccess: true,
     };
   }
 
@@ -41,10 +44,10 @@ export class UntilService {
     message: string,
   ): NormalResponse {
     return {
+      isSuccess: code === 200 || code === 201 ? true : false,
       code,
       data,
       message,
-      status: code === 200 || code === 201 ? "success" : "fail",
     };
   }
 }
