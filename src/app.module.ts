@@ -10,7 +10,7 @@ import { DatabaseModule } from "./database/database.module";
 import { CommonModule } from "./common/common.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
 import { MeModule } from "./modules/me/me.module";
-import { FileValidationMiddleware } from "@/common/middleware";
+import { FileValidationMiddleware } from "@/common/middlewares";
 import { HttpExceptionFilter } from "@/common/filters";
 import { APP_FILTER } from "@nestjs/core";
 @Module({

@@ -86,8 +86,8 @@ async function bootstrap() {
 bootstrap()
   .then(() =>
     console.log(
-      `Application running on port ${process.env.PORT ?? 3000}`,
-      new Date().toLocaleString(),
+      `Application running on port ${process.env.PORT ?? 3000}, ${new Date().toLocaleString()} ✅
+      `,
     ),
   )
   .catch(console.error);
