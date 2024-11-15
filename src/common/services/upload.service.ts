@@ -1,43 +1,68 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  UploadApiErrorResponse,
-  UploadApiResponse,
-  v2 as cloudinary,
-} from "cloudinary";
-import streamifier from "streamifier";
+import * as Minio from "minio";
+import { Readable } from "stream";
+import * as crypto from "crypto";
+import * as mime from "mime-types";
 
 @Injectable()
 export class UploadService {
-  constructor(config: ConfigService) {
-    cloudinary.config({
-      cloud_name: config.getOrThrow("CLOUDINARY_CLOUD_NAME"),
-      api_key: config.getOrThrow("CLOUDINARY_API_KEY"),
-      api_secret: config.getOrThrow("CLOUDINARY_API_SECRET"),
+  private readonly minioClient: Minio.Client;
+
+  private readonly bucketName: string;
+
+  constructor(private config: ConfigService) {
+    this.minioClient = new Minio.Client({
+      endPoint: this.config.getOrThrow("MINIO_ENDPOINT"),
+      port: Number(this.config.getOrThrow("MINIO_PORT")) ?? 9000,
+      useSSL: false,
+      accessKey: this.config.getOrThrow("MINIO_ACCESS_KEY"),
+      secretKey: this.config.getOrThrow("MINIO_SECRET_KEY"),
     });
+    this.bucketName = this.config.getOrThrow("MINIO_BUCKET_NAME");
   }
 
-  public async uploadImage(
-    file: Express.Multer.File,
-  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-    return new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
+  public async uploadImage(file: Express.Multer.File): Promise<string> {
+    const fileName = `assert-${Date.now()}-${crypto.randomUUID()}${this.getExtensionFile(file)}`;
+
+    const fileStream = Readable.from(file.buffer);
+
+    const fileSize = file.buffer.length;
+
+    const mimeType =
+      mime.lookup(file.originalname) || "application/octet-stream";
+
+    try {
+      await this.minioClient.putObject(
+        this.bucketName,
+        fileName,
+        fileStream,
+        fileSize,
+        {
+          "Content-Type": mimeType,
         },
       );
-
-      streamifier.createReadStream(file.buffer).pipe(uploadStream);
-    });
+      return fileName;
+    } catch (error) {
+      throw new BadRequestException(
+        `Error uploading file to MinIO: ${error.message}`,
+      );
+    }
   }
 
-  public async removeImage(publicId: string): Promise<{ result: string }> {
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader.destroy(publicId, (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      });
-    });
+  public async removeImage(fileName: string): Promise<void> {
+    try {
+      await this.minioClient.removeObject(this.bucketName, fileName);
+    } catch (error) {
+      throw new BadRequestException(
+        `Error removing file from MinIO: ${error.message}`,
+      );
+    }
+  }
+
+  private getExtensionFile(fileName: Express.Multer.File): string {
+    return fileName.originalname.substring(
+      fileName.originalname.lastIndexOf("."),
+    );
   }
 }

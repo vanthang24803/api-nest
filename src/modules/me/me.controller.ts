@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Put, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Put,
+  Post,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
+} from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { MeService } from "./me.service";
 import { JwtAuthGuard } from "@/common/guards";
@@ -6,6 +15,7 @@ import { NormalResponse } from "@/shared";
 import { CurrentUser } from "@/common/decorators";
 import { User } from "@/database/entities";
 import { ProfileRequest, UpdatePasswordRequest } from "./dto";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 @Controller("me")
 @ApiTags("Profile")
@@ -32,5 +42,14 @@ export class MeController {
     @Body() request: UpdatePasswordRequest,
   ): Promise<NormalResponse> {
     return this.meService.updatePassword(user, request);
+  }
+
+  @Post("avatar")
+  @UseInterceptors(FileInterceptor("file"))
+  public async uploadAvatar(
+    @CurrentUser() user: User,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.meService.uploadAvatar(user, file);
   }
 }

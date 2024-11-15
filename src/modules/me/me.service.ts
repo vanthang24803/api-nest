@@ -1,6 +1,7 @@
 import { UntilService, UploadService } from "@/common";
 import { User } from "@/database/entities";
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -27,6 +28,9 @@ export class MeService {
       where: {
         id: user.id,
       },
+      relations: {
+        roles: true,
+      },
     });
 
     if (!existingUser) throw new UnauthorizedException("Account not found!");
@@ -34,6 +38,9 @@ export class MeService {
     const covertUser = {
       ...existingUser,
       fullName: `${existingUser.firstName} ${existingUser.lastName}`,
+      avatar: existingUser.avatar
+        ? this.util.combinePhotoPaths(existingUser.avatar)
+        : null,
       roles: existingUser.roles.map((item) => item.role),
     };
 
@@ -68,7 +75,42 @@ export class MeService {
     }
   }
 
-  public async updatePassword(user: User, request: UpdatePasswordRequest) {
+  public async uploadAvatar(
+    user: User,
+    file: Express.Multer.File,
+  ): Promise<NormalResponse> {
+    try {
+      const existingUser = await this.userRepository.findOne({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!existingUser) throw new UnauthorizedException("Account not found!");
+
+      if (existingUser.avatar) {
+        await this.upload.removeImage(existingUser.avatar);
+      }
+
+      const avatarUrl = await this.upload.uploadImage(file);
+
+      await this.userRepository.update(existingUser.id, {
+        avatar: avatarUrl,
+      });
+
+      return this.util.buildSuccessResponse({
+        message: "Updated avatar successfully!",
+      });
+    } catch (err) {
+      this.logger.error(err);
+      throw new BadRequestException(err);
+    }
+  }
+
+  public async updatePassword(
+    user: User,
+    request: UpdatePasswordRequest,
+  ): Promise<NormalResponse> {
     try {
       const existingUser = await this.userRepository.findOne({
         where: {

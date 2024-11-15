@@ -35,6 +35,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(FileValidationMiddleware)
-      .forRoutes({ path: "/path", method: RequestMethod.ALL });
+      .forRoutes({ path: "/me/avatar", method: RequestMethod.POST });
   }
 }

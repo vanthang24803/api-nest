@@ -22,7 +22,7 @@ export class FileValidationMiddleware implements NestMiddleware {
     const file = req.file;
 
     if (!file) {
-      throw new UnsupportedMediaTypeException("No file uploaded.");
+      throw new UnsupportedMediaTypeException("File upload wrong!");
     }
 
     if (file.size > this.maxSize) {
