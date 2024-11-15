@@ -1,17 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, Column, ManyToMany } from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
+import { Product } from "../product";
 
 @Entity("catalogs")
 export class Catalog extends CustomBaseEntity {
-  @PrimaryGeneratedColumn("uuid", {
-    name: "id",
-  })
-  id!: string;
-
   @Column({
     type: "varchar",
     length: 255,
     nullable: false,
   })
   name!: string;
+
+  @ManyToMany(() => Product, (product) => product.catalogs)
+  products: Product[];
 }

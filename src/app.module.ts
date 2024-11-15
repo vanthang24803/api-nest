@@ -13,6 +13,7 @@ import { MeModule } from "./modules/me/me.module";
 import { FileValidationMiddleware } from "@/common/middlewares";
 import { HttpExceptionFilter } from "@/common/filters";
 import { APP_FILTER } from "@nestjs/core";
+import { ProductsModule } from "./modules/products/products.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +24,7 @@ import { APP_FILTER } from "@nestjs/core";
     CommonModule,
     CatalogModule,
     MeModule,
+    ProductsModule,
   ],
   providers: [
     {

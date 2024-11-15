@@ -1,20 +1,9 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
 import { User } from "./user.entity";
 
 @Entity("tokens")
 export class Token extends CustomBaseEntity {
-  @PrimaryGeneratedColumn("uuid", {
-    name: "id",
-  })
-  id!: string;
-
   @Column({
     type: "varchar",
     nullable: false,

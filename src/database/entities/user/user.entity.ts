@@ -1,22 +1,10 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToMany,
-  JoinTable,
-  OneToMany,
-} from "typeorm";
+import { Entity, Column, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
 import { Role } from "./role.entity";
 import { Token } from "./token.entity";
 
 @Entity("users")
 export class User extends CustomBaseEntity {
-  @PrimaryGeneratedColumn("uuid", {
-    name: "id",
-  })
-  id!: string;
-
   @Column("varchar", {
     nullable: false,
     length: 255,
