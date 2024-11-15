@@ -2,7 +2,5 @@ export interface NormalResponse {
   code: number;
   data: any;
   message?: string;
-  status: Status;
+  isSuccess: boolean;
 }
-
-type Status = "success" | "fail" | "pending" | "completed";

@@ -40,7 +40,9 @@ export class CatalogService {
   public async findAll(): Promise<NormalResponse> {
     const catalogs = await this.catalogRepository.find();
 
-    return this.util.buildSuccessResponse(catalogs);
+    return this.util.buildSuccessResponse(
+      this.util.mapToDto(catalogs, CatalogResponse),
+    );
   }
 
   public async findOneById(id: string): Promise<NormalResponse> {
@@ -53,7 +55,7 @@ export class CatalogService {
     }
 
     return this.util.buildSuccessResponse(
-      this.util.mapper<Catalog, CatalogResponse>(catalog),
+      this.util.mapToDto(catalog, CatalogResponse),
     );
   }
 
