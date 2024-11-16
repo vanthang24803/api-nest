@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { OptionsService } from './options.service';
+import { Module } from "@nestjs/common";
+import { OptionsService } from "./options.service";
 
 @Module({
-  providers: [OptionsService]
+  providers: [OptionsService],
 })
 export class OptionsModule {}

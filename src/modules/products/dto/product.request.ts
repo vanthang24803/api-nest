@@ -10,7 +10,7 @@ import {
 
 export class ProductRequest {
   @IsString()
-  @MaxLength(128)
+  @MaxLength(256)
   name: string;
 
   introduction?: string;

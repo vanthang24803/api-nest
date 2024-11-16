@@ -35,14 +35,15 @@ export class ProductsController {
     ]),
   )
   public async save(
-    @Body() request: ProductRequest,
+    @Body()
+    request: ProductRequest,
     @UploadedFiles()
     files: {
       thumbnail: Express.Multer.File[];
       photos?: Express.Multer.File[];
     },
   ) {
-    return this.productService.save(request, files.thumbnail[0], files.photos);
+    return this.productService.save(request, files[0].thumbnail, files.photos);
   }
 
   @Get()

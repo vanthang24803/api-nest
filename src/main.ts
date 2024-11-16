@@ -1,15 +1,12 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import {
-  ValidationPipe,
-  BadGatewayException,
-  InternalServerErrorException,
-} from "@nestjs/common";
+import { ValidationPipe, InternalServerErrorException } from "@nestjs/common";
 import * as cookieParser from "cookie-parser";
 import { WinstonModule } from "nest-winston";
 import { ValidationError } from "class-validator";
 import winston from "winston";
+import * as express from "express";
 
 async function bootstrap() {
   const isProduction = process.env.NODE_ENV === "production";
@@ -17,6 +14,8 @@ async function bootstrap() {
   // !: Application
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
+    bodyParser: true,
+    rawBody: true,
     logger: isProduction
       ? WinstonModule.createLogger({
           level: "info",
@@ -50,6 +49,7 @@ async function bootstrap() {
 
   // TODO: Versions
   app.setGlobalPrefix(`api/v${process.env["VERSION"] || "1"}`);
+  app.use(express.urlencoded({ extended: true }));
 
   // TODO: Validation
   app.useGlobalPipes(

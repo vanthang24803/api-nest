@@ -115,12 +115,15 @@ export class ProductsService {
       take: limit,
     });
 
-    const result: IPagination<Product> = {
+    const result: IPagination<unknown> = {
       page,
       limit,
       size: total,
       offset: (page - 1) * limit,
-      result: products,
+      result: products.map((product) => ({
+        ...product,
+        thumbnail: this.util.combinePhotoPaths(product.thumbnail),
+      })),
     };
 
     return this.util.buildSuccessResponse(result);
@@ -140,7 +143,10 @@ export class ProductsService {
 
     if (!existingProduct) throw new NotFoundException("Product not found!");
 
-    return this.util.buildSuccessResponse(existingProduct);
+    return this.util.buildSuccessResponse({
+      ...existingProduct,
+      thumbnail: this.util.combinePhotoPaths(existingProduct.thumbnail),
+    });
   }
 
   public async update(
