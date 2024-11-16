@@ -1,6 +1,8 @@
-import { Column, Entity, JoinTable, ManyToMany } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
 import { CustomBaseEntity } from "../custom.entity";
 import { Catalog } from "../catalog";
+import { Option } from "../options";
+import { Photo } from "../photo";
 
 @Entity("products")
 export class Product extends CustomBaseEntity {
@@ -49,4 +51,10 @@ export class Product extends CustomBaseEntity {
     },
   })
   catalogs: Catalog[];
+
+  @OneToMany(() => Option, (option) => option.product, { cascade: true })
+  options: Option[];
+
+  @OneToMany(() => Photo, (photo) => photo.product, { cascade: true })
+  photos: Photo[];
 }

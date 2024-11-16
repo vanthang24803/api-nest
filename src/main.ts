@@ -1,7 +1,11 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { ValidationPipe, BadGatewayException } from "@nestjs/common";
+import {
+  ValidationPipe,
+  BadGatewayException,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import * as cookieParser from "cookie-parser";
 import { WinstonModule } from "nest-winston";
 import { ValidationError } from "class-validator";
@@ -55,7 +59,7 @@ async function bootstrap() {
       transform: true,
       disableErrorMessages: true,
       exceptionFactory: (validationErrors: ValidationError[] = []) =>
-        new BadGatewayException(validationErrors),
+        new InternalServerErrorException(validationErrors),
     }),
   );
 
@@ -86,8 +90,7 @@ async function bootstrap() {
 bootstrap()
   .then(() =>
     console.log(
-      `Application running on port ${process.env.PORT ?? 3000}, ${new Date().toLocaleString()} ✅
-      `,
+      `Application running on port ${process.env.PORT ?? 3000}, ${new Date().toLocaleString()} ✅`,
     ),
   )
   .catch(console.error);
