@@ -1,15 +1,15 @@
+import { APP_FILTER } from "@nestjs/core";
+import { ConfigModule } from "@nestjs/config";
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { ConfigModule } from "@nestjs/config";
-import { DatabaseModule } from "./database/database.module";
-import { CommonModule } from "./common/common.module";
-import { CatalogModule } from "./modules/catalog/catalog.module";
-import { MeModule } from "./modules/me/me.module";
+import { DatabaseModule } from "@/database/database.module";
+import { CommonModule } from "@/common/common.module";
+import { CatalogModule } from "@/modules/catalog/catalog.module";
+import { MeModule } from "@/modules/me/me.module";
 import { FileValidationMiddleware } from "@/common/middlewares";
 import { HttpExceptionFilter } from "@/common/filters";
-import { APP_FILTER } from "@nestjs/core";
-import { ProductsModule } from "./modules/products/products.module";
-import { NestjsFormDataModule } from "nestjs-form-data";
+import { ProductsModule } from "@/modules/products/products.module";
+import { OptionsModule } from "@/modules/options/options.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,7 +21,7 @@ import { NestjsFormDataModule } from "nestjs-form-data";
     CatalogModule,
     MeModule,
     ProductsModule,
-    NestjsFormDataModule,
+    OptionsModule,
   ],
   providers: [
     {

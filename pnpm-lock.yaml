@@ -53,9 +53,6 @@ importers:
       ioredis:
         specifier: ^5.4.1
         version: 5.4.1
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
       mime-types:
         specifier: ^2.1.35
         version: 2.1.35
@@ -80,9 +77,6 @@ importers:
       passport-local:
         specifier: ^1.0.0
         version: 1.0.0
-      qs:
-        specifier: ^6.13.0
-        version: 6.13.0
       reflect-metadata:
         specifier: ^0.2.0
         version: 0.2.2
@@ -120,9 +114,6 @@ importers:
       '@types/jest':
         specifier: ^29.5.2
         version: 29.5.14
-      '@types/lodash':
-        specifier: ^4.17.13
-        version: 4.17.13
       '@types/mime-types':
         specifier: ^2.1.4
         version: 2.1.4
@@ -138,9 +129,6 @@ importers:
       '@types/passport-local':
         specifier: ^1.0.38
         version: 1.0.38
-      '@types/qs':
-        specifier: ^6.9.17
-        version: 6.9.17
       '@types/supertest':
         specifier: ^6.0.0
         version: 6.0.2
@@ -778,9 +766,6 @@ packages:
 
   '@types/jsonwebtoken@9.0.7':
     resolution: {integrity: sha512-ugo316mmTYBl2g81zDFnZ7cfxlut3o+/EQdaP7J8QN2kY6lJ22hmQYCK5EHcJHbrW+dkCGSCPgbG8JtYj6qSrg==}
-
-  '@types/lodash@4.17.13':
-    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
 
   '@types/methods@1.1.4':
     resolution: {integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==}
@@ -4339,8 +4324,6 @@ snapshots:
   '@types/jsonwebtoken@9.0.7':
     dependencies:
       '@types/node': 20.17.6
-
-  '@types/lodash@4.17.13': {}
 
   '@types/methods@1.1.4': {}
 
