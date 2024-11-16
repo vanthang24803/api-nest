@@ -15,7 +15,7 @@ import { CatalogRequest } from "./dto";
 import { JwtAuthGuard, RolesGuard } from "@/common/guards";
 import { Roles } from "@/common/decorators";
 
-@Controller("catalog")
+@Controller("catalogs")
 @ApiTags("Catalog")
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}

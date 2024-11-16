@@ -1,9 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { ConfigModule } from "@nestjs/config";
 import { DatabaseModule } from "./database/database.module";
@@ -13,6 +8,8 @@ import { MeModule } from "./modules/me/me.module";
 import { FileValidationMiddleware } from "@/common/middlewares";
 import { HttpExceptionFilter } from "@/common/filters";
 import { APP_FILTER } from "@nestjs/core";
+import { ProductsModule } from "./modules/products/products.module";
+import { NestjsFormDataModule } from "nestjs-form-data";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +20,8 @@ import { APP_FILTER } from "@nestjs/core";
     CommonModule,
     CatalogModule,
     MeModule,
+    ProductsModule,
+    NestjsFormDataModule,
   ],
   providers: [
     {
@@ -33,8 +32,6 @@ import { APP_FILTER } from "@nestjs/core";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(FileValidationMiddleware)
-      .forRoutes({ path: "/me/avatar", method: RequestMethod.POST });
+    consumer.apply(FileValidationMiddleware).forRoutes();
   }
 }

@@ -12,6 +12,7 @@ export class FileValidationMiddleware implements NestMiddleware {
     "image/jpeg",
     "image/png",
     "image/jpg",
+    "image/webp",
     "text/plain",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   ];
@@ -20,6 +21,7 @@ export class FileValidationMiddleware implements NestMiddleware {
 
   use(req: Request, _: Response, next: NextFunction) {
     const file = req.file;
+    console.log(file);
 
     if (!file) {
       throw new UnsupportedMediaTypeException("File upload wrong!");
