@@ -51,6 +51,8 @@ export class OptionsService {
         }),
       );
 
+      await queryRunner.commitTransaction();
+
       return this.util.buildCreatedResponse({
         message: "Options created successfully!",
       });
@@ -137,6 +139,14 @@ export class OptionsService {
     await queryRunner.startTransaction();
 
     try {
+      const existingProduct = await this.productRepository.findOne({
+        where: {
+          id: productId,
+        },
+      });
+
+      if (!existingProduct) throw new NotFoundException("Product not found!");
+
       if (request.length > 0) {
         const deletePromises = request.map(async (item) => {
           const option = await this.optionRepository.findOne({

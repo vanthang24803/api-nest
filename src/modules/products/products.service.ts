@@ -14,6 +14,7 @@ import { ProductResponse } from "./dto/product.response";
 import { CatalogResponse } from "../catalog/dto";
 import { OptionResponse } from "../options/dto";
 import { plainToInstance } from "class-transformer";
+import { PhotoResponse } from "../photos/dto";
 
 @Injectable()
 export class ProductsService {
@@ -121,6 +122,7 @@ export class ProductsService {
       relations: {
         catalogs: true,
         options: true,
+        photos: true,
       },
     });
 
@@ -134,6 +136,13 @@ export class ProductsService {
           ...product,
           catalogs: this.util.mapToDto(product.catalogs, CatalogResponse),
           options: this.util.mapToDto(product.options, OptionResponse),
+          photos: this.util.mapToDto(
+            product.photos.map((photo) => ({
+              ...photo,
+              url: this.util.combinePhotoPaths(photo.url),
+            })),
+            PhotoResponse,
+          ),
         }),
       ),
     };
@@ -155,10 +164,21 @@ export class ProductsService {
 
     if (!existingProduct) throw new NotFoundException("Product not found!");
 
-    return this.util.buildSuccessResponse({
+    const jsonResponse = {
       ...existingProduct,
       thumbnail: this.util.combinePhotoPaths(existingProduct.thumbnail),
-    });
+      catalogs: this.util.mapToDto(existingProduct.catalogs, CatalogResponse),
+      options: this.util.mapToDto(existingProduct.options, OptionResponse),
+      photos: this.util.mapToDto(
+        existingProduct.photos.map((photo) => ({
+          ...photo,
+          url: this.util.combinePhotoPaths(photo.url),
+        })),
+        PhotoResponse,
+      ),
+    };
+
+    return this.util.buildSuccessResponse(jsonResponse);
   }
 
   public async update(
