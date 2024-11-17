@@ -41,28 +41,27 @@ export class UntilService {
 
   buildSuccessResponse(data: unknown): NormalResponse {
     return {
-      code: HttpStatus.OK,
+      httpCode: HttpStatus.OK,
+      message: "Success!",
       data,
-      isSuccess: true,
     };
   }
 
   buildCreatedResponse(data: unknown): NormalResponse {
     return {
-      code: HttpStatus.CREATED,
+      httpCode: HttpStatus.CREATED,
+      message: "Success!",
       data,
-      isSuccess: true,
     };
   }
 
   buildCustomResponse(
-    code: number,
+    httpCode: number,
     data: unknown,
     message: string,
   ): NormalResponse {
     return {
-      isSuccess: code === 200 || code === 201 ? true : false,
-      code,
+      httpCode,
       data,
       message,
     };

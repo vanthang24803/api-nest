@@ -20,6 +20,13 @@ export class Product extends CustomBaseEntity {
   thumbnail!: string;
 
   @Column({
+    type: "varchar",
+    length: 255,
+    nullable: false,
+  })
+  brand!: string;
+
+  @Column({
     type: "bigint",
     nullable: false,
     default: 0,
