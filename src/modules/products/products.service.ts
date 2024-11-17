@@ -10,6 +10,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { ProductRequest, UpdateProductRequest } from "./dto";
 import { BaseQuery, IPagination, NormalResponse } from "@/shared";
+import { ProductResponse } from "./dto/product.response";
+import { CatalogResponse } from "../catalog/dto";
+import { OptionResponse } from "../options/dto";
+import { plainToInstance } from "class-transformer";
 
 @Injectable()
 export class ProductsService {
@@ -43,6 +47,7 @@ export class ProductsService {
 
       const newProduct = this.productRepository.create({
         name: request.name,
+        brand: request.brand,
         thumbnail: uploadThumbnail,
         introduction: request.introduction,
         specifications: request.introduction,
@@ -113,17 +118,24 @@ export class ProductsService {
     const [products, total] = await this.productRepository.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
+      relations: {
+        catalogs: true,
+        options: true,
+      },
     });
 
-    const result: IPagination<unknown> = {
+    const result: IPagination<ProductResponse> = {
       page,
       limit,
       size: total,
-      offset: (page - 1) * limit,
-      result: products.map((product) => ({
-        ...product,
-        thumbnail: this.util.combinePhotoPaths(product.thumbnail),
-      })),
+      totalPage: Math.ceil(total / limit),
+      result: products.map((product) =>
+        plainToInstance(ProductResponse, {
+          ...product,
+          catalogs: this.util.mapToDto(product.catalogs, CatalogResponse),
+          options: this.util.mapToDto(product.options, OptionResponse),
+        }),
+      ),
     };
 
     return this.util.buildSuccessResponse(result);
