@@ -7,11 +7,14 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { OptionsService } from "./options.service";
-import { BaseQuery, NormalResponse } from "@/shared";
+import { BaseQuery, NormalResponse, Role } from "@/shared";
 import { OptionDelete, OptionRequest } from "./dto";
+import { JwtAuthGuard } from "@/common/guards";
+import { Roles } from "@/common/decorators";
 
 @Controller("products/:productId/options")
 @ApiTags("Options")
@@ -19,6 +22,8 @@ export class OptionsController {
   constructor(private readonly optionService: OptionsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin, Role.Manager)
   public async save(
     @Param("productId") productId: string,
     @Body() request: OptionRequest[],
@@ -43,6 +48,8 @@ export class OptionsController {
   }
 
   @Put(":optionId")
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin, Role.Manager)
   public async update(
     @Param("productId") productId: string,
     @Param("optionId") optionId: string,
@@ -52,6 +59,8 @@ export class OptionsController {
   }
 
   @Delete()
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin, Role.Manager)
   public async remove(
     @Param("productId") productId: string,
     @Body() request: OptionDelete[],
