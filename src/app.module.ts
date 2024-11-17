@@ -10,6 +10,7 @@ import { FileValidationMiddleware } from "@/common/middlewares";
 import { HttpExceptionFilter } from "@/common/filters";
 import { ProductsModule } from "@/modules/products/products.module";
 import { OptionsModule } from "@/modules/options/options.module";
+import { PhotosModule } from "@/modules/photos/photos.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,6 +23,7 @@ import { OptionsModule } from "@/modules/options/options.module";
     MeModule,
     ProductsModule,
     OptionsModule,
+    PhotosModule,
   ],
   providers: [
     {

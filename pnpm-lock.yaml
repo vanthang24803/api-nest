@@ -50,9 +50,6 @@ importers:
       eslint-plugin-prettier:
         specifier: ^5.2.1
         version: 5.2.1(@types/eslint@9.6.1)(eslint-config-prettier@9.1.0(eslint@8.57.1))(eslint@8.57.1)(prettier@3.3.3)
-      ioredis:
-        specifier: ^5.4.1
-        version: 5.4.1
       mime-types:
         specifier: ^2.1.35
         version: 2.1.35
@@ -3813,7 +3810,8 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ioredis/commands@1.2.0': {}
+  '@ioredis/commands@1.2.0':
+    optional: true
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -4913,7 +4911,8 @@ snapshots:
 
   clone@1.0.4: {}
 
-  cluster-key-slot@1.1.2: {}
+  cluster-key-slot@1.1.2:
+    optional: true
 
   co@4.6.0: {}
 
@@ -5080,7 +5079,8 @@ snapshots:
 
   delegates@1.0.0: {}
 
-  denque@2.1.0: {}
+  denque@2.1.0:
+    optional: true
 
   depd@2.0.0: {}
 
@@ -5666,6 +5666,7 @@ snapshots:
       standard-as-callback: 2.1.0
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   ipaddr.js@1.9.1: {}
 
@@ -6181,11 +6182,13 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
-  lodash.defaults@4.2.0: {}
+  lodash.defaults@4.2.0:
+    optional: true
 
   lodash.includes@4.3.0: {}
 
-  lodash.isarguments@3.1.0: {}
+  lodash.isarguments@3.1.0:
+    optional: true
 
   lodash.isboolean@3.0.3: {}
 
@@ -6708,11 +6711,13 @@ snapshots:
     dependencies:
       picomatch: 2.3.1
 
-  redis-errors@1.2.0: {}
+  redis-errors@1.2.0:
+    optional: true
 
   redis-parser@3.0.0:
     dependencies:
       redis-errors: 1.2.0
+    optional: true
 
   reflect-metadata@0.2.2: {}
 
@@ -6882,7 +6887,8 @@ snapshots:
     dependencies:
       escape-string-regexp: 2.0.0
 
-  standard-as-callback@2.1.0: {}
+  standard-as-callback@2.1.0:
+    optional: true
 
   statuses@2.0.1: {}
 
