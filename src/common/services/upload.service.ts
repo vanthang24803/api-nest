@@ -14,7 +14,7 @@ export class UploadService {
   constructor(private config: ConfigService) {
     this.minioClient = new Minio.Client({
       endPoint: this.config.getOrThrow("MINIO_ENDPOINT"),
-      port: Number(this.config.getOrThrow("MINIO_PORT")) ?? 9000,
+      port: Number(this.config.getOrThrow("MINIO_PORT", 9000)),
       useSSL: false,
       accessKey: this.config.getOrThrow("MINIO_ACCESS_KEY"),
       secretKey: this.config.getOrThrow("MINIO_SECRET_KEY"),
