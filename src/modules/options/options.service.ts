@@ -10,12 +10,14 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { OptionDelete, OptionRequest, OptionResponse } from "./dto";
 import { BaseQuery, IPagination, NormalResponse } from "@/shared";
+import { RedisService } from "@/redis/redis.service";
 
 @Injectable()
 export class OptionsService {
   constructor(
     private readonly util: UntilService,
     private readonly logger: Logger,
+    private readonly redis: RedisService,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Option)
@@ -38,6 +40,8 @@ export class OptionsService {
           id: productId,
         },
       });
+
+      await this.redis.del(`Product_${existingProduct.id}`);
 
       if (!existingProduct) throw new NotFoundException("Product not found!");
 
@@ -111,6 +115,8 @@ export class OptionsService {
     optionId: string,
     request: OptionRequest,
   ): Promise<NormalResponse> {
+    await this.redis.del(`Product_${productId}`);
+
     const existingOption = await this.optionRepository.findOne({
       where: {
         id: optionId,
@@ -146,6 +152,8 @@ export class OptionsService {
       });
 
       if (!existingProduct) throw new NotFoundException("Product not found!");
+
+      await this.redis.del(`Product_${existingProduct.id}`);
 
       if (request.length > 0) {
         const deletePromises = request.map(async (item) => {

@@ -10,7 +10,7 @@ export class RedisService {
     return this.cacheManager.get<T>(key);
   }
 
-  async set(key: string, value: any, ttl: number = 60 * 60): Promise<void> {
+  async set(key: string, value: any, ttl: number = 60 * 5): Promise<void> {
     await this.cacheManager.set(key, value, { ttl });
   }
 

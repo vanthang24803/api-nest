@@ -45,6 +45,8 @@ export class ProductsService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    await this.redis.reset();
+
     try {
       const uploadThumbnail = await this.upload.uploadImage(thumbnail);
 
@@ -118,6 +120,12 @@ export class ProductsService {
   public async findAll(query: BaseQuery): Promise<NormalResponse> {
     const { limit, page } = query;
 
+    const cacheKey = `Products_${limit}_${page}`;
+
+    const cache = await this.redis.get<NormalResponse>(cacheKey);
+
+    if (cache) return cache;
+
     const [products, total] = await this.productRepository.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
@@ -149,10 +157,22 @@ export class ProductsService {
       ),
     };
 
-    return this.util.buildSuccessResponse(result);
+    const response = this.util.buildSuccessResponse(result);
+
+    await this.redis.set(cacheKey, response);
+
+    return response;
   }
 
   public async findOne(id: string): Promise<NormalResponse> {
+    const cacheKey = `Product_${id}`;
+
+    const cache = await this.redis.get<NormalResponse>(cacheKey);
+
+    if (cache) {
+      return cache;
+    }
+
     const existingProduct = await this.productRepository.findOne({
       where: {
         id,
@@ -180,7 +200,11 @@ export class ProductsService {
       ),
     };
 
-    return this.util.buildSuccessResponse(jsonResponse);
+    const result = this.util.buildSuccessResponse(jsonResponse);
+
+    await this.redis.set(cacheKey, result, 60 * 10);
+
+    return result;
   }
 
   public async update(
@@ -194,6 +218,8 @@ export class ProductsService {
     });
 
     if (!existingProduct) throw new NotFoundException("Product not found!");
+
+    await this.redis.del(`Product_${existingProduct.id}`);
 
     await this.productRepository.update(existingProduct.id, {
       ...request,
@@ -217,6 +243,8 @@ export class ProductsService {
       });
 
       if (!existingProduct) throw new NotFoundException("Product not found!");
+
+      await this.redis.del(`Product_${existingProduct.id}`);
 
       for (const photo of existingProduct.photos) {
         await this.upload.removeImage(photo.url);
