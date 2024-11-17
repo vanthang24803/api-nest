@@ -32,65 +32,6 @@ export class ProductsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  public async test(request: ProductRequest) {
-    const queryRunner = this.dataSource.createQueryRunner();
-
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const newProduct = this.productRepository.create({
-        name: request.name,
-        brand: request.brand,
-        thumbnail: "bia_subaru_1_b9a4f6d76bfc48788efd7cc786722932_master.webp",
-        introduction: request.introduction,
-        specifications: request.introduction,
-        options: [],
-        photos: [],
-        catalogs: [],
-      });
-      await queryRunner.manager.save(newProduct);
-
-      const catalogs = await Promise.all(
-        request.catalogs.map(async (catalog) => {
-          const existingCatalog = await this.catalogRepository.findOne({
-            where: { id: catalog.id },
-          });
-          if (!existingCatalog)
-            throw new NotFoundException("Catalog not found!");
-          return existingCatalog;
-        }),
-      );
-
-      const options = await Promise.all(
-        request.options.map(async (option) => {
-          const newOption = this.optionRepository.create({
-            ...option,
-            productId: newProduct.id,
-          });
-          return await queryRunner.manager.save(newOption);
-        }),
-      );
-
-      newProduct.catalogs = catalogs;
-      newProduct.options = options;
-
-      await queryRunner.manager.save(newProduct);
-
-      await queryRunner.commitTransaction();
-
-      return this.util.buildCreatedResponse({
-        message: "Created Product Successfully!",
-      });
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      this.logger.error(err);
-      throw new BadRequestException(err);
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
   public async save(
     request: ProductRequest,
     thumbnail: Express.Multer.File,

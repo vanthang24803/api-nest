@@ -6,6 +6,7 @@ import { JwtModule } from "@nestjs/jwt";
 import * as entities from "@/database/entities";
 import { JwtStrategy } from "@/common/strategies";
 import { AuthenticationService } from "@/common";
+import { OptionsController } from "./options.controller";
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { AuthenticationService } from "@/common";
     TypeOrmModule.forFeature(Object.values(entities)),
     JwtModule,
   ],
+  controllers: [OptionsController],
   providers: [OptionsService, AuthenticationService, JwtStrategy, Logger],
 })
 export class OptionsModule {}

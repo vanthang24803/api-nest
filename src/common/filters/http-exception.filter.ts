@@ -26,7 +26,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         : responseBody?.error || "An error occurred";
 
     response.status(status).json({
-      isSuccess: false,
       httpCode: status,
       message,
       error,
