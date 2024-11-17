@@ -15,6 +15,7 @@ import { CatalogResponse } from "../catalog/dto";
 import { OptionResponse } from "../options/dto";
 import { plainToInstance } from "class-transformer";
 import { PhotoResponse } from "../photos/dto";
+import { RedisService } from "@/redis/redis.service";
 
 @Injectable()
 export class ProductsService {
@@ -22,6 +23,7 @@ export class ProductsService {
     private readonly logger: Logger,
     private readonly util: UntilService,
     private readonly upload: UploadService,
+    private readonly redis: RedisService,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Catalog)
