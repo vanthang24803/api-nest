@@ -13,6 +13,7 @@ import { OptionsModule } from "@/modules/options/options.module";
 import { PhotosModule } from "@/modules/photos/photos.module";
 import { RedisModule } from "@/redis/redis.module";
 import { MailModule } from "@/mail/mail.module";
+import { BullModule } from "@/bull/bull.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,6 +29,7 @@ import { MailModule } from "@/mail/mail.module";
     PhotosModule,
     RedisModule,
     MailModule,
+    BullModule,
   ],
   providers: [
     {
