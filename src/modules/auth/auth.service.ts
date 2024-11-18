@@ -29,6 +29,7 @@ export class AuthService {
 
     const payload: Payload = {
       id: check.id,
+      email: check.email,
       fullName: `${check.firstName} ${check.lastName}`,
       avatar: check.avatar,
       roles: check.roles.map((item) => item.role),
@@ -63,5 +64,9 @@ export class AuthService {
     return this.util.buildSuccessResponse(
       await this.authenticationService.refreshToken(refreshToken),
     );
+  }
+
+  public async verifyAccount(token: string): Promise<NormalResponse> {
+    return this.authenticationService.verifyAccount(token);
   }
 }

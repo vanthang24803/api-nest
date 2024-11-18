@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
@@ -31,6 +33,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   public async login(@Body() request: LoginRequest): Promise<NormalResponse> {
     return await this.authService.login(request);
+  }
+
+  @Get("verify-account")
+  @HttpCode(HttpStatus.OK)
+  public async verifyAccount(@Query("token") token: string) {
+    return this.authService.verifyAccount(token);
   }
 
   @Post("refresh")

@@ -24,6 +24,13 @@ MINIO_ENDPOINT=localhost
 
 REDIS_HOST=
 REDIS_PORT=6379
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=
+EMAIL_PASS=
+EMAIL_FROM=
 `;
 
 writeFile(".env", envContent.trim(), (err) => {

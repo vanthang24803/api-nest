@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToMany } from "typeorm";
-import { CustomBaseEntity } from "../custom.entity";
+import { CustomBaseEntity } from "./custom.entity";
 import { Role as RoleEnum } from "@/shared/enums";
 import { User } from "./user.entity";
 

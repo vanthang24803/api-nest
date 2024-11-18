@@ -13,7 +13,7 @@ import { ConfigService } from "@nestjs/config";
         store: redisStore,
         host: config.getOrThrow<string>("REDIS_HOST", "localhost"),
         port: Number(config.getOrThrow<number>("REDIS_PORT", 6379)),
-        ttl: 60 * 5,
+        ttl: 60 * 10,
       }),
     }),
   ],

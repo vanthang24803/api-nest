@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToMany } from "typeorm";
-import { CustomBaseEntity } from "../custom.entity";
-import { Product } from "../product";
+import { CustomBaseEntity } from "./custom.entity";
+import { Product } from "./product.entity";
 
 @Entity("catalogs")
 export class Catalog extends CustomBaseEntity {
