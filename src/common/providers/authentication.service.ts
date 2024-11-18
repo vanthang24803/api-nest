@@ -12,12 +12,14 @@ import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
-import { EEmailType, Role as RoleEnum } from "@/shared";
+import { EEmailType as EmailType, Role as RoleEnum } from "@/shared";
 import { JwtPayload, JwtSign, Payload } from "@/shared/interfaces";
 import { UntilService } from "@/common/services";
 import { Role, Token, User } from "@/database/entities";
-import { MailService } from "@/mail/mail.service";
 import { RedisService } from "@/redis/redis.service";
+import { InjectQueue } from "@nestjs/bull";
+import { Queue } from "bull";
+import { AuthEvent, AuthProcess } from "@/shared/events";
 
 @Injectable()
 export class AuthenticationService {
@@ -29,8 +31,9 @@ export class AuthenticationService {
     private readonly jwt: JwtService,
     private readonly configService: ConfigService,
     private readonly util: UntilService,
-    private readonly mail: MailService,
     private readonly redis: RedisService,
+    @InjectQueue(AuthEvent.Mail)
+    private readonly bull: Queue,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
@@ -92,10 +95,10 @@ export class AuthenticationService {
         },
       );
 
-      await this.mail.sendMailWithToken({
+      await this.bull.add(AuthProcess.SendMailWithToken, {
         fullName: `${newAccount.firstName} ${newAccount.lastName}`,
         toEmail: newAccount.email,
-        type: EEmailType.VERIFY_ACCOUNT,
+        type: EmailType.VERIFY_ACCOUNT,
         userId: newAccount.id,
         token: token,
       });
@@ -229,10 +232,10 @@ export class AuthenticationService {
           expiresIn: "1h",
         });
 
-        await this.mail.sendMailWithToken({
+        await this.bull.add(AuthProcess.SendMailWithToken, {
           fullName: payloadWithoutExp.payload.fullName,
           toEmail: payloadWithoutExp.payload.email,
-          type: EEmailType.VERIFY_ACCOUNT,
+          type: EmailType.VERIFY_ACCOUNT,
           userId: payloadWithoutExp.sub,
           token: newToken,
         });

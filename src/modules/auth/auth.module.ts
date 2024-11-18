@@ -7,6 +7,9 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { PassportModule } from "@nestjs/passport";
 import { AuthenticationService } from "@/common";
 import { JwtStrategy, LocalStrategy } from "@/common/strategies";
+import { BullModule } from "@nestjs/bull";
+import { EmailConsumer } from "@/bull/consumers";
+import { AuthEvent } from "@/shared/events";
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import { JwtStrategy, LocalStrategy } from "@/common/strategies";
     PassportModule.register({
       defaultStrategy: "jwt",
     }),
+    BullModule.registerQueueAsync({
+      name: AuthEvent.Mail,
+    }),
   ],
   providers: [
     AuthService,
@@ -22,6 +28,7 @@ import { JwtStrategy, LocalStrategy } from "@/common/strategies";
     JwtStrategy,
     LocalStrategy,
     Logger,
+    EmailConsumer,
   ],
   controllers: [AuthController],
 })
