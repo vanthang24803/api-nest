@@ -11,6 +11,7 @@ import { HttpExceptionFilter } from "@/common/filters";
 import { ProductsModule } from "@/modules/products/products.module";
 import { OptionsModule } from "@/modules/options/options.module";
 import { PhotosModule } from "@/modules/photos/photos.module";
+import { RedisModule } from "./redis/redis.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -24,6 +25,7 @@ import { PhotosModule } from "@/modules/photos/photos.module";
     ProductsModule,
     OptionsModule,
     PhotosModule,
+    RedisModule,
   ],
   providers: [
     {

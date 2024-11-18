@@ -10,6 +10,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { PhotoDelete, PhotoResponse } from "./dto";
+import { RedisService } from "@/redis/redis.service";
 
 @Injectable()
 export class PhotosService {
@@ -17,6 +18,7 @@ export class PhotosService {
     private readonly util: UntilService,
     private readonly logger: Logger,
     private readonly upload: UploadService,
+    private readonly redis: RedisService,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Photo)
@@ -41,6 +43,8 @@ export class PhotosService {
       if (!existingProduct) {
         throw new NotFoundException("Product not found!");
       }
+
+      await this.redis.del(`Product_${existingProduct.id}`);
 
       if (files.length > 0) {
         const photoPromises = files.map(async (file) => {
@@ -125,6 +129,8 @@ export class PhotosService {
     file: Express.Multer.File,
   ): Promise<NormalResponse> {
     try {
+      await this.redis.del(`Product_${productId}`);
+
       const existingPhoto = await this.photoService.findOne({
         where: {
           id: photoId,
@@ -163,6 +169,8 @@ export class PhotosService {
       });
 
       if (!existingProduct) throw new NotFoundException("Product not found!");
+
+      await this.redis.del(`Product_${existingProduct.id}`);
 
       if (files.length > 0) {
         const deletePromises = files.map(async (file) => {

@@ -21,6 +21,9 @@ MINIO_ACCESS_KEY=
 MINIO_SECRET_KEY=
 MINIO_BUCKET_NAME=
 MINIO_ENDPOINT=localhost
+
+REDIS_HOST=
+REDIS_PORT=6379
 `;
 
 writeFile(".env", envContent.trim(), (err) => {
