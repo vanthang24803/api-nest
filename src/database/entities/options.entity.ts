@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne } from "typeorm";
-import { CustomBaseEntity } from "../custom.entity";
-import { Product } from "../product";
+import { CustomBaseEntity } from "./custom.entity";
+import { Product } from "./product.entity";
 
 @Entity("options")
 export class Option extends CustomBaseEntity {

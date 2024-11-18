@@ -1,4 +1,3 @@
-import { Role, Token, User } from "@/database/entities";
 import { RegisterRequest, RefreshToken } from "@/modules/auth/dto";
 import {
   BadRequestException,
@@ -16,6 +15,7 @@ import * as bcrypt from "bcrypt";
 import { Role as RoleEnum } from "@/shared";
 import { JwtPayload, JwtSign, Payload } from "@/shared/interfaces";
 import { UntilService } from "../services";
+import { Role, Token, User } from "@/database/entities";
 
 @Injectable()
 export class AuthenticationService {

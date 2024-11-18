@@ -1,8 +1,8 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
-import { CustomBaseEntity } from "../custom.entity";
-import { Catalog } from "../catalog";
-import { Option } from "../options";
-import { Photo } from "../photo";
+import { CustomBaseEntity } from "./custom.entity";
+import { Catalog } from "./catalog.entity";
+import { Photo } from "./photo.entity";
+import { Option } from "./options.entity";
 
 @Entity("products")
 export class Product extends CustomBaseEntity {
