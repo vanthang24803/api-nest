@@ -14,6 +14,7 @@ import { RedisService } from "@/redis/redis.service";
 import { InjectQueue } from "@nestjs/bull";
 import { PhotoEvent, PhotoProcess } from "@/shared/events";
 import { Queue } from "bull";
+import { UploadPhotoHandler } from "@/bull/consumers/dto";
 
 @Injectable()
 export class PhotosService {
@@ -57,7 +58,7 @@ export class PhotosService {
       await this.bull.add(PhotoProcess.Upload, {
         files: fileSender,
         productId,
-      });
+      } as UploadPhotoHandler);
 
       return this.util.buildCreatedResponse({
         message: "Photos created successfully!",

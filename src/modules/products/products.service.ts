@@ -1,5 +1,5 @@
 import { UntilService, UploadService } from "@/common";
-import { Catalog, Option, Photo, Product } from "@/database/entities";
+import { Catalog, Product } from "@/database/entities";
 import {
   BadRequestException,
   Injectable,
@@ -16,6 +16,10 @@ import { OptionResponse } from "../options/dto";
 import { plainToInstance } from "class-transformer";
 import { PhotoResponse } from "../photos/dto";
 import { RedisService } from "@/redis/redis.service";
+import { InjectQueue } from "@nestjs/bull";
+import { ProductEvent, ProductProcess } from "@/shared/events";
+import { Queue } from "bull";
+import { CreateProductHandler } from "@/bull/consumers/dto";
 
 @Injectable()
 export class ProductsService {
@@ -24,14 +28,12 @@ export class ProductsService {
     private readonly util: UntilService,
     private readonly upload: UploadService,
     private readonly redis: RedisService,
+    @InjectQueue(ProductEvent)
+    private readonly bull: Queue,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Catalog)
     private readonly catalogRepository: Repository<Catalog>,
-    @InjectRepository(Option)
-    private readonly optionRepository: Repository<Option>,
-    @InjectRepository(Photo)
-    private readonly photoRepository: Repository<Photo>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -74,36 +76,17 @@ export class ProductsService {
         }),
       );
 
-      const options = await Promise.all(
-        request.options.map(async (option) => {
-          const newOption = this.optionRepository.create({
-            ...option,
-            productId: newProduct.id,
-          });
-          return await queryRunner.manager.save(newOption);
-        }),
-      );
-
-      const photos = filePhotos
-        ? await Promise.all(
-            filePhotos.map(async (photo) => {
-              const uploadPhoto = await this.upload.uploadImage(photo);
-              const newPhoto = this.photoRepository.create({
-                url: uploadPhoto,
-                productId: newProduct.id,
-              });
-              return await queryRunner.manager.save(newPhoto);
-            }),
-          )
-        : [];
-
       newProduct.catalogs = catalogs;
-      newProduct.options = options;
-      newProduct.photos = photos;
 
       await queryRunner.manager.save(newProduct);
 
       await queryRunner.commitTransaction();
+
+      await this.bull.add(ProductProcess.Create, {
+        productId: newProduct.id,
+        options: request.options,
+        photos: filePhotos,
+      } as CreateProductHandler);
 
       return this.util.buildCreatedResponse({
         message: "Created Product Successfully!",
