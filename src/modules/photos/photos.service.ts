@@ -8,9 +8,12 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { PhotoDelete, PhotoResponse } from "./dto";
 import { RedisService } from "@/redis/redis.service";
+import { InjectQueue } from "@nestjs/bull";
+import { PhotoEvent, PhotoProcess } from "@/shared/events";
+import { Queue } from "bull";
 
 @Injectable()
 export class PhotosService {
@@ -19,22 +22,18 @@ export class PhotosService {
     private readonly logger: Logger,
     private readonly upload: UploadService,
     private readonly redis: RedisService,
+    @InjectQueue(PhotoEvent)
+    private readonly bull: Queue,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Photo)
     private readonly photoService: Repository<Photo>,
-    private readonly dataSource: DataSource,
   ) {}
 
   public async save(
     productId: string,
     files: Express.Multer.File[],
   ): Promise<NormalResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     try {
       const existingProduct = await this.productRepository.findOne({
         where: { id: productId },
@@ -46,32 +45,26 @@ export class PhotosService {
 
       await this.redis.del(`Product_${existingProduct.id}`);
 
+      const fileSender: string[] = [];
+
       if (files.length > 0) {
-        const photoPromises = files.map(async (file) => {
-          const fileUpload = await this.upload.uploadImage(file);
-
-          const newPhoto = this.photoService.create({
-            url: fileUpload,
-            productId: existingProduct.id,
-          });
-
-          return queryRunner.manager.save(newPhoto);
+        files.forEach((file) => {
+          const decode = this.util.convertImageToBase64(file);
+          fileSender.push(decode);
         });
-
-        await Promise.all(photoPromises);
       }
 
-      await queryRunner.commitTransaction();
+      await this.bull.add(PhotoProcess.Upload, {
+        files: fileSender,
+        productId,
+      });
 
       return this.util.buildCreatedResponse({
         message: "Photos created successfully!",
       });
     } catch (err) {
-      await queryRunner.rollbackTransaction();
       this.logger.error(err);
       throw new BadRequestException(err);
-    } finally {
-      await queryRunner.release();
     }
   }
 
@@ -158,11 +151,6 @@ export class PhotosService {
   }
 
   public async remove(productId: string, files: PhotoDelete[]) {
-    const queryRunner = this.dataSource.createQueryRunner();
-
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     try {
       const existingProduct = await this.productRepository.findOne({
         where: { id: productId },
@@ -172,36 +160,17 @@ export class PhotosService {
 
       await this.redis.del(`Product_${existingProduct.id}`);
 
-      if (files.length > 0) {
-        const deletePromises = files.map(async (file) => {
-          const photo = await this.photoService.findOne({
-            where: {
-              productId,
-              id: file.id,
-            },
-          });
-
-          if (!photo) throw new NotFoundException("Photo not found!");
-
-          await this.upload.removeImage(photo.url);
-
-          await queryRunner.manager.remove(photo);
-        });
-
-        await Promise.all(deletePromises);
-      }
-
-      await queryRunner.commitTransaction();
+      await this.bull.add(PhotoProcess.Remove, {
+        productId,
+        files,
+      });
 
       return this.util.buildSuccessResponse({
         message: "Deleted Photos Successfully!",
       });
     } catch (err) {
-      await queryRunner.rollbackTransaction();
       this.logger.error(err);
       throw new BadRequestException(err);
-    } finally {
-      await queryRunner.release();
     }
   }
 }
