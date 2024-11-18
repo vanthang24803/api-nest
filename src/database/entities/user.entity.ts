@@ -31,6 +31,14 @@ export class User extends CustomBaseEntity {
   })
   avatar?: string;
 
+  @Column({
+    type: "bool",
+    name: "email_confirm",
+    default: false,
+    nullable: false,
+  })
+  isEmailConfirm: boolean;
+
   @Column("varchar", {
     nullable: true,
     length: 255,
@@ -38,7 +46,7 @@ export class User extends CustomBaseEntity {
   })
   email!: string;
 
-  @OneToMany(() => Token, (token) => token.user)
+  @OneToMany(() => Token, (token) => token.user, { cascade: true })
   tokens: Token[];
 
   @ManyToMany(() => Role, (role) => role.User)

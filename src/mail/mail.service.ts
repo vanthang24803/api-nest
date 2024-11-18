@@ -59,6 +59,7 @@ export class MailService {
       fullName,
       link,
     );
+
     const mailRequest: MailRequest = {
       toEmail,
       message: htmlContent,

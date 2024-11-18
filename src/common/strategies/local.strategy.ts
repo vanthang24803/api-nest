@@ -22,6 +22,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     return {
       id: user.id,
       avatar: user.avatar,
+      email: user.email,
       fullName: `${user.firstName} ${user.lastName}`,
       roles: user.roles.map((item) => item.role),
     };

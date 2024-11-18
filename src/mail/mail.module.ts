@@ -13,10 +13,10 @@ import { Mail } from "@/database/entities";
         transport: {
           host: config.getOrThrow<string>("MAIL_HOST", "smtp.gmail.com"),
           port: Number(config.getOrThrow<number>("MAIL_PORT", 587)),
-          secure: config.getOrThrow<boolean>("MAIL_SECURE", false),
+          secure: false,
           auth: {
             user: config.getOrThrow<string>("MAIL_USER"),
-            password: config.getOrThrow<string>("MAIL_PASSWORD"),
+            pass: config.getOrThrow<string>("MAIL_PASSWORD"),
           },
         },
         defaults: {
