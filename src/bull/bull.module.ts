@@ -8,8 +8,8 @@ import { ConfigService } from "@nestjs/config";
     Bull.forRootAsync({
       useFactory: (config: ConfigService) => ({
         connection: {
-          host: config.get("REDIS_HOST"),
-          port: config.get("REDIS_PORT"),
+          host: config.get("REDIS_HOST", "localhost"),
+          port: config.get("REDIS_PORT", 6379),
         },
         defaultJobOptions: {
           removeOnComplete: true,
