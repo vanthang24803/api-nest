@@ -6,3 +6,6 @@ export * from "./product.entity";
 export * from "./photo.entity";
 export * from "./options.entity";
 export * from "./mail.entity";
+export * from "./order.entity";
+export * from "./order_detail.entity";
+export * from "./order_status.entity";

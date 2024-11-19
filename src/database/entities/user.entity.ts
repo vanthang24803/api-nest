@@ -2,6 +2,7 @@ import { Entity, Column, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { CustomBaseEntity } from "./custom.entity";
 import { Role } from "./role.entity";
 import { Token } from "./token.entity";
+import { Order } from "./order.entity";
 
 @Entity("users")
 export class User extends CustomBaseEntity {
@@ -48,6 +49,9 @@ export class User extends CustomBaseEntity {
 
   @OneToMany(() => Token, (token) => token.user, { cascade: true })
   tokens: Token[];
+
+  @OneToMany(() => Order, (order) => order.user, { cascade: true })
+  orders: Order[];
 
   @ManyToMany(() => Role, (role) => role.User)
   @JoinTable({
