@@ -21,32 +21,34 @@ export class ProductConsumer {
 
   @Process(ProductProcess.Create)
   public async createProduct(job: Job<CreateProductHandler>) {
+    const { productId, options, photos } = job.data;
+
     try {
-      const { productId, options, photos } = job.data;
+      const optionPromises = options.map((option) => {
+        const newOption = this.optionRepository.create({
+          ...option,
+          productId,
+        });
+        return this.optionRepository.save(newOption);
+      });
 
-      await Promise.all(
-        options.map(async (option) => {
-          const newOption = this.optionRepository.create({
-            ...option,
-            productId,
-          });
-          return await this.optionRepository.save(newOption);
-        }),
-      );
+      await Promise.all(optionPromises);
 
-      await Promise.all(
-        photos.map(async (photo) => {
-          const uploadPhoto = await this.upload.uploadImage(photo);
-          const newPhoto = this.photoRepository.create({
-            url: uploadPhoto,
-            productId,
-          });
-          return await this.photoRepository.save(newPhoto);
-        }),
-      );
+      const photoPromises = photos.map(async (photo) => {
+        const uploadPhoto = await this.upload.uploadImage(photo);
+        const newPhoto = this.photoRepository.create({
+          url: uploadPhoto,
+          productId,
+        });
+        return this.photoRepository.save(newPhoto);
+      });
+
+      await Promise.all(photoPromises);
     } catch (err) {
-      this.logger.error(err);
-      throw new BadRequestException(err);
+      this.logger.error("Error creating product:", err);
+      throw new BadRequestException(
+        "Error creating product. Please check the logs for details.",
+      );
     }
   }
 }
