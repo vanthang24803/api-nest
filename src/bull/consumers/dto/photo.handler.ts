@@ -4,3 +4,8 @@ export type RemovePhotoHandler = {
   productId: string;
   files: PhotoDelete[];
 };
+
+export type UploadPhotoHandler = {
+  productId: string;
+  files: string[];
+};

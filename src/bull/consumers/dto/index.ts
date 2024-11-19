@@ -1,2 +1,2 @@
-export * from "./upload.photo";
-export * from "./remove.photo";
+export * from "./photo.handler";
+export * from "./product.handler";
