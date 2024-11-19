@@ -23,7 +23,9 @@ export class Token extends CustomBaseEntity {
   })
   userId!: string;
 
-  @ManyToOne(() => User, (user) => user.tokens)
+  @ManyToOne(() => User, (user) => user.tokens, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "user_id" })
   user!: User;
 }

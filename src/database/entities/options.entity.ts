@@ -1,6 +1,8 @@
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
 import { CustomBaseEntity } from "./custom.entity";
 import { Product } from "./product.entity";
+import { EPayment } from "@/shared";
+import { OrderDetail } from "./order_detail.entity";
 
 @Entity("options")
 export class Option extends CustomBaseEntity {
@@ -26,7 +28,15 @@ export class Option extends CustomBaseEntity {
   quantity: number;
 
   @Column({
-    type: "float",
+    type: "enum",
+    nullable: false,
+    enum: EPayment,
+    default: EPayment.COD,
+  })
+  payment: EPayment;
+
+  @Column({
+    type: "double precision",
     nullable: false,
     default: 0,
   })
@@ -50,4 +60,9 @@ export class Option extends CustomBaseEntity {
     onDelete: "CASCADE",
   })
   product: Product;
+
+  @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.option, {
+    cascade: true,
+  })
+  orderDetails: OrderDetail[];
 }
