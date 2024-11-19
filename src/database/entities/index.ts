@@ -9,3 +9,4 @@ export * from "./mail.entity";
 export * from "./order.entity";
 export * from "./order_detail.entity";
 export * from "./order_status.entity";
+export * from "./review.entity";

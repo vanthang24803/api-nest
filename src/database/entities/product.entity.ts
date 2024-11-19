@@ -3,6 +3,7 @@ import { CustomBaseEntity } from "./custom.entity";
 import { Catalog } from "./catalog.entity";
 import { Photo } from "./photo.entity";
 import { Option } from "./options.entity";
+import { Review } from "./review.entity";
 
 @Entity("products")
 export class Product extends CustomBaseEntity {
@@ -64,4 +65,7 @@ export class Product extends CustomBaseEntity {
 
   @OneToMany(() => Photo, (photo) => photo.product, { cascade: true })
   photos: Photo[];
+
+  @OneToMany(() => Review, (review) => review.product, { cascade: true })
+  reviews: Review[];
 }

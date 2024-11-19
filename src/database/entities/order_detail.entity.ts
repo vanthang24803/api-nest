@@ -14,6 +14,13 @@ export class OrderDetail extends CustomBaseEntity {
   productName!: string;
 
   @Column({
+    type: "text",
+    nullable: true,
+    name: "product_thumbnail",
+  })
+  thumbnail?: string;
+
+  @Column({
     type: "varchar",
     length: 255,
     nullable: false,

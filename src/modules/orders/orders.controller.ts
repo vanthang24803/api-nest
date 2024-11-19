@@ -1,4 +1,9 @@
-import { Controller } from "@nestjs/common";
+import { JwtAuthGuard } from "@/common/guards";
+import { Controller, UseGuards } from "@nestjs/common";
+import { OrdersService } from "./orders.service";
 
 @Controller("orders")
-export class OrdersController {}
+@UseGuards(JwtAuthGuard)
+export class OrdersController {
+  constructor(private readonly orderService: OrdersService) {}
+}
