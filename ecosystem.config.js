@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "nest-api",
-      script: "dist/index.js",
+      script: "dist/main.js",
       instances: "max",
       exec_mode: "cluster",
       env: {
