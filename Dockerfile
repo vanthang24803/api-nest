@@ -6,7 +6,7 @@ COPY package*.json pnpm-lock.yaml ecosystem.config.js ./
 
 RUN npm install -g pnpm pm2
 
-RUN pnpm install --production
+RUN pnpm install
 
 COPY . .
 
