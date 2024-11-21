@@ -14,7 +14,7 @@ import { RedisService } from "@/redis/redis.service";
 import { InjectQueue } from "@nestjs/bull";
 import { PhotoEvent, PhotoProcess } from "@/shared/events";
 import { Queue } from "bull";
-import { UploadPhotoHandler } from "@/bull/consumers/dto";
+import { UploadPhotoHandler } from "@/bull/consumers/handler";
 
 @Injectable()
 export class PhotosService {

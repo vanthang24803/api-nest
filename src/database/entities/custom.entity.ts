@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from "typeorm";
 
 export abstract class CustomBaseEntity extends BaseEntity {
@@ -22,4 +23,11 @@ export abstract class CustomBaseEntity extends BaseEntity {
     type: "timestamp",
   })
   updatedAt!: Date;
+
+  @DeleteDateColumn({
+    name: "deleted_at",
+    type: "timestamp",
+    nullable: true,
+  })
+  deletedAt?: Date;
 }

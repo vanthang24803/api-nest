@@ -20,7 +20,7 @@ import { DataSource, Repository } from "typeorm";
 import { OrderRequest } from "./dto";
 import { EOrderStatus, NormalResponse } from "@/shared";
 import { RedisService } from "@/redis/redis.service";
-import { SendOrderMailHandler } from "@/bull/consumers/dto";
+import { SendOrderMailHandler } from "@/bull/consumers/handler";
 
 @Injectable()
 export class OrdersService {
