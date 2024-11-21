@@ -19,6 +19,8 @@ import { Queue } from "bull";
 import { DataSource, Repository } from "typeorm";
 import { OrderRequest } from "./dto";
 import { EOrderStatus, NormalResponse } from "@/shared";
+import { RedisService } from "@/redis/redis.service";
+import { SendOrderMailHandler } from "@/bull/consumers/dto";
 
 @Injectable()
 export class OrdersService {
@@ -26,6 +28,7 @@ export class OrdersService {
     private readonly logger: Logger,
     private readonly util: UntilService,
     private readonly dataSource: DataSource,
+    private readonly redis: RedisService,
     @InjectQueue(OrderEvent)
     private readonly bull: Queue,
     @InjectRepository(Order)
@@ -46,6 +49,8 @@ export class OrdersService {
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
+    await this.redis.reset();
 
     try {
       const { detail, ...orderInfo } = request;
@@ -95,15 +100,20 @@ export class OrdersService {
 
       await Promise.all(detailPromises);
 
-      await this.bull.add(OrderEventProcess.SendMaiOrder, {
+      const orderMessage: Order = {
         ...newOrder,
         status: [newStatusOrder],
         orderDetails: detailResult,
-      } as Order);
+      } as Order;
+
+      await this.bull.add(OrderEventProcess.SendMaiOrder, {
+        subject: "Xác nhận đơn hàng",
+        message: orderMessage,
+      } as SendOrderMailHandler);
 
       await queryRunner.commitTransaction();
 
-      return this.util.buildSuccessResponse({
+      return this.util.buildCreatedResponse({
         message: "Created order successfully!",
       });
     } catch (err) {

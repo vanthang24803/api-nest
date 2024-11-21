@@ -5,6 +5,7 @@ import { plainToInstance } from "class-transformer";
 import * as base64 from "base64-js";
 import * as crypto from "crypto";
 import * as sharp from "sharp";
+import { EOrderStatus, EPayment } from "@/shared";
 @Injectable()
 export class UntilService {
   private readonly minioBucketName: string;
@@ -13,10 +14,21 @@ export class UntilService {
 
   private readonly minioHost: string;
 
+  private orderStatusMap: { [key in EOrderStatus]: string };
+
   constructor(private readonly config: ConfigService) {
     this.minioHost = this.config.getOrThrow("MINIO_ENDPOINT") ?? "localhost";
     this.minioPort = Number(this.config.getOrThrow("MINIO_PORT")) ?? 9000;
     this.minioBucketName = this.config.getOrThrow("MINIO_BUCKET_NAME");
+
+    this.orderStatusMap = {
+      [EOrderStatus.PENDING]: "Đang khởi tạo",
+      [EOrderStatus.CREATE]: "Đã tạo đơn",
+      [EOrderStatus.SHIPPING]: "Đang vận chuyển",
+      [EOrderStatus.SUCCESS]: "Thành công",
+      [EOrderStatus.CANCEL]: "Đã hủy",
+      [EOrderStatus.RETURN]: "Đã trả lại",
+    };
   }
 
   convertImageToBase64(file: Express.Multer.File): string {
@@ -59,6 +71,27 @@ export class UntilService {
         `Error converting Base64 to image: ${err.message}`,
       );
     }
+  }
+
+  convertPayment(payment: EPayment): string {
+    switch (payment) {
+      case EPayment.COD:
+        return "Thanh toán khi nhận hàng COD";
+      case EPayment.BANK:
+        return "Thanh toán qua ngân hàng";
+      case EPayment.MOMO:
+        return "Thanh toán qua ứng dụng MoMo";
+      default:
+        throw new BadRequestException("Invalid payment method!");
+    }
+  }
+
+  convertPrice(price: number): string {
+    return price.toLocaleString("de-DE").replace(/,/g, ".");
+  }
+
+  convertStatusOrder(status: EOrderStatus): string {
+    return this.orderStatusMap[status] || "Trạng thái không hợp lệ";
   }
 
   combinePhotoPaths(fileName: string): string {
