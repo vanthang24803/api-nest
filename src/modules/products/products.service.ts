@@ -19,7 +19,7 @@ import { RedisService } from "@/redis/redis.service";
 import { InjectQueue } from "@nestjs/bull";
 import { ProductEvent, ProductProcess } from "@/shared/events";
 import { Queue } from "bull";
-import { CreateProductHandler } from "@/bull/consumers/dto";
+import { CreateProductHandler } from "@/bull/consumers/handler";
 
 @Injectable()
 export class ProductsService {

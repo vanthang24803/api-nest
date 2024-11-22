@@ -12,7 +12,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
         database: config.getOrThrow<string>("DB_NAME", "postgres"),
         username: config.getOrThrow<string>("DB_USERNAME", "postgres"),
         password: config.getOrThrow<string>("DB_PASSWORD"),
-        synchronize: true,
+        synchronize: config.get<string>("NODE_ENV") ? false : true,
         autoLoadEntities: true,
       }),
       inject: [ConfigService],

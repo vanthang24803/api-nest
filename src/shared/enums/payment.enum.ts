@@ -1,5 +1,5 @@
 export enum EPayment {
-  COD,
-  BANK,
-  MOMO,
+  COD = 0,
+  BANK = 1,
+  MOMO = 2,
 }

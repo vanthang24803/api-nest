@@ -4,8 +4,8 @@ import { Process, Processor } from "@nestjs/bull";
 import { BadRequestException, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Job } from "bull";
-import { Repository } from "typeorm";
-import { CreateProductHandler } from "./dto";
+import { DataSource, Repository } from "typeorm";
+import { CreateProductHandler } from "./handler";
 import { UploadService } from "@/common";
 
 @Processor(ProductEvent)
@@ -17,11 +17,16 @@ export class ProductConsumer {
     private readonly optionRepository: Repository<Option>,
     @InjectRepository(Photo)
     private readonly photoRepository: Repository<Photo>,
+    private readonly dataSource: DataSource,
   ) {}
 
   @Process(ProductProcess.Create)
   public async createProduct(job: Job<CreateProductHandler>) {
     const { productId, options, photos } = job.data;
+
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.startTransaction();
 
     try {
       const optionPromises = options.map((option) => {
@@ -29,7 +34,7 @@ export class ProductConsumer {
           ...option,
           productId,
         });
-        return this.optionRepository.save(newOption);
+        return queryRunner.manager.save(newOption);
       });
 
       await Promise.all(optionPromises);
@@ -40,15 +45,21 @@ export class ProductConsumer {
           url: uploadPhoto,
           productId,
         });
-        return this.photoRepository.save(newPhoto);
+
+        return queryRunner.manager.save(newPhoto);
       });
 
       await Promise.all(photoPromises);
+
+      await queryRunner.commitTransaction();
     } catch (err) {
+      await queryRunner.rollbackTransaction();
       this.logger.error("Error creating product:", err);
       throw new BadRequestException(
         "Error creating product. Please check the logs for details.",
       );
+    } finally {
+      await queryRunner.release();
     }
   }
 }

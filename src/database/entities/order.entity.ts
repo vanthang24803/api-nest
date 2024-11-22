@@ -3,6 +3,7 @@ import { CustomBaseEntity } from "./custom.entity";
 import { User } from "./user.entity";
 import { OrderStatus } from "./order_status.entity";
 import { OrderDetail } from "./order_detail.entity";
+import { EPayment } from "@/shared";
 
 @Entity("orders")
 export class Order extends CustomBaseEntity {
@@ -20,6 +21,14 @@ export class Order extends CustomBaseEntity {
     length: 255,
   })
   customer: string;
+
+  @Column({
+    type: "enum",
+    enum: EPayment,
+    nullable: false,
+    default: EPayment.COD,
+  })
+  payment: EPayment;
 
   @Column({
     type: "varchar",

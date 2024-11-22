@@ -4,7 +4,7 @@ import { Process, Processor } from "@nestjs/bull";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { Job } from "bull";
 import { DataSource, Repository } from "typeorm";
-import { RemovePhotoHandler, UploadPhotoHandler } from "./dto";
+import { RemovePhotoHandler, UploadPhotoHandler } from "./handler";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Photo } from "@/database/entities";
 

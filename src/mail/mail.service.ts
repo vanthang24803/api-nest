@@ -9,16 +9,18 @@ import { MailRequest, MailWithTokenEvent } from "./dto";
 import { EEmailType } from "@/shared";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Mail } from "@/database/entities";
+import { Mail, Order } from "@/database/entities";
 import { Repository } from "typeorm";
+import { UntilService } from "@/common";
 
 @Injectable()
 export class MailService {
   private readonly appClient: string;
 
   constructor(
-    private readonly mailer: MailerService,
     private readonly logger: Logger,
+    private readonly util: UntilService,
+    private readonly mailer: MailerService,
     private readonly config: ConfigService,
     @InjectRepository(Mail)
     private readonly mailRepository: Repository<Mail>,
@@ -27,6 +29,72 @@ export class MailService {
       "APP_CLIENT",
       "http://localhost:3000",
     );
+  }
+
+  public async sendOrderMail(subject: string, order: Order) {
+    const { orderDetails, status, ...info } = order;
+    const {
+      id,
+      customer,
+      address,
+      numberPhone,
+      quantity,
+      totalPrice,
+      payment,
+    } = info;
+
+    const orderTemplate = await this.mailRepository.findOne({
+      where: { type: EEmailType.ORDER },
+    });
+
+    if (!orderTemplate)
+      throw new BadRequestException("Order mail template not found!");
+
+    let htmlContent = orderTemplate.template;
+
+    const lastedStatus = status.reduce(
+      (latest, current) =>
+        !latest || current.createdAt > latest.createdAt ? current : latest,
+      null,
+    );
+
+    htmlContent = htmlContent
+      .replace("{ID}", id)
+      .replace("{CUSTOMER}", customer)
+      .replace("{ADDRESS}", address)
+      .replace("{PHONE}", numberPhone)
+      .replace("{QUANTITY}", quantity.toString())
+      .replace("{TOTAL_PRICE}", this.util.convertPrice(totalPrice))
+      .replace("{PAYMENT}", this.util.convertPayment(payment))
+      .replace(
+        "{STATUS}",
+        lastedStatus
+          ? this.util.convertStatusOrder(lastedStatus.status)
+          : "Trạng thái không xác định",
+      );
+
+    const detailsBuilder = orderDetails
+      .map(
+        (order) => `
+      <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${order.productName}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${order.price} VNĐ</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${order.optionName}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${order.quantity}</td>
+      </tr>
+    `,
+      )
+      .join("");
+
+    htmlContent = htmlContent.replace("{DETAILS}", detailsBuilder);
+
+    const mailRequest: MailRequest = {
+      toEmail: info.email,
+      message: htmlContent,
+      subject,
+    };
+
+    await this.sendMail(mailRequest);
   }
 
   public async sendMailWithToken(mail: MailWithTokenEvent) {
