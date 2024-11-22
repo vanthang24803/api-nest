@@ -1,17 +1,29 @@
 import { JwtAuthGuard } from "@/common/guards";
-import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { OrdersService } from "./orders.service";
-import { OrderRequest } from "./dto";
+import { OrderRequest, UserUpdateOrder } from "./dto";
 import { BaseQuery, NormalResponse, Role } from "@/shared";
 import { CurrentUser, Roles } from "@/common/decorators";
 import { User } from "@/database/entities";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("orders")
-@UseGuards(JwtAuthGuard)
+@ApiTags("Orders")
 export class OrdersController {
   constructor(private readonly orderService: OrdersService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Customer)
   public async save(
     @CurrentUser() user: User,
     @Body() request: OrderRequest,
@@ -24,9 +36,25 @@ export class OrdersController {
     return this.orderService.findAllOrdersForUser(user, query);
   }
 
+  @Get(":id")
+  public async findOne(@Param("id") id: string) {
+    return this.orderService.findOneOrder(id);
+  }
+
   @Get("manager")
+  @UseGuards(JwtAuthGuard)
   @Roles(Role.Manager, Role.Admin)
   public async findAllOrderForManager(@Query() query: BaseQuery) {
     return this.orderService.findAllOrdersForManager(query);
+  }
+
+  @Put(":id")
+  @UseGuards(JwtAuthGuard)
+  public async updateOrderByUser(
+    @CurrentUser() user: User,
+    @Param("id") orderId: string,
+    @Body() request: UserUpdateOrder,
+  ) {
+    return this.orderService.updateByUser(user, orderId, request);
   }
 }

@@ -1,12 +1,14 @@
-import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { ValidationPipe, InternalServerErrorException } from "@nestjs/common";
-import * as cookieParser from "cookie-parser";
-import { WinstonModule } from "nest-winston";
-import { ValidationError } from "class-validator";
+import helmet from "helmet";
 import winston from "winston";
 import * as express from "express";
+import * as cookieParser from "cookie-parser";
+import { ValidationError } from "class-validator";
+
+import { AppModule } from "@/app.module";
+import { NestFactory } from "@nestjs/core";
+import { WinstonModule } from "nest-winston";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { ValidationPipe, InternalServerErrorException } from "@nestjs/common";
 
 async function bootstrap() {
   const isProduction = process.env.NODE_ENV === "production";
@@ -65,6 +67,8 @@ async function bootstrap() {
 
   // TODO: Cookie
   app.use(cookieParser());
+
+  app.use(helmet());
 
   //  TODO: Swagger
   const config = new DocumentBuilder()

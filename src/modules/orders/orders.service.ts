@@ -17,12 +17,11 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Queue } from "bull";
 import { DataSource, IsNull, Repository } from "typeorm";
-import { OrderRequest } from "./dto";
 import { BaseQuery, EOrderStatus, IPagination, NormalResponse } from "@/shared";
 import { RedisService } from "@/redis/redis.service";
 import { SendOrderMailHandler } from "@/bull/consumers/handler";
 import { plainToInstance } from "class-transformer";
-import { OrderResponse } from "./dto/order.response";
+import { OrderResponse, OrderRequest, UserUpdateOrder } from "./dto";
 
 @Injectable()
 export class OrdersService {
@@ -228,5 +227,115 @@ export class OrdersService {
     await this.redis.set(cacheKey, response);
 
     return response;
+  }
+
+  async findOneOrder(id: string): Promise<NormalResponse> {
+    const cacheKey = `Order_${id}`;
+
+    const cache = await this.redis.get<NormalResponse>(cacheKey);
+
+    if (cache) return cache;
+
+    const existingOrder = await this.orderRepository.findOne({
+      where: {
+        deletedAt: IsNull(),
+        id,
+      },
+    });
+
+    if (!existingOrder) throw new NotFoundException("Order not found!");
+
+    const orderDetails = await this.orderDetailRepository.find({
+      where: {
+        orderId: existingOrder.id,
+      },
+    });
+
+    const orderResult = {
+      ...existingOrder,
+      orderDetails,
+    } as Order;
+
+    const result = this.util.buildSuccessResponse(
+      plainToInstance(OrderResponse, orderResult),
+    );
+
+    await this.redis.set(cacheKey, result);
+
+    return result;
+  }
+
+  async updateByUser(
+    user: User,
+    orderId: string,
+    request: UserUpdateOrder,
+  ): Promise<NormalResponse> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this.redis.del(`Order_${orderId}`);
+
+      const existingOrder = await this.orderRepository.findOne({
+        where: {
+          deletedAt: IsNull(),
+          id: orderId,
+          userId: user.id,
+        },
+      });
+
+      if (!existingOrder) {
+        throw new NotFoundException("Order not found!");
+      }
+
+      const orderDetails = await this.orderDetailRepository.find({
+        where: {
+          orderId: existingOrder.id,
+        },
+      });
+
+      await queryRunner.manager.update(
+        this.orderRepository.target,
+        { id: existingOrder.id },
+        { ...request },
+      );
+
+      await queryRunner.commitTransaction();
+
+      const updatedOrder = await this.orderRepository.findOne({
+        where: { id: existingOrder.id },
+      });
+
+      if (!updatedOrder) {
+        throw new NotFoundException("Failed to fetch the updated order.");
+      }
+
+      const orderResult = {
+        ...updatedOrder,
+        orderDetails,
+      } as Order;
+
+      await this.bull.add(OrderEventProcess.SendMaiOrder, {
+        subject: "Đơn hàng của bạn đã được cập nhật",
+        message: orderResult,
+      } as SendOrderMailHandler);
+
+      const result = this.util.buildSuccessResponse({
+        message: "Updated order successfully!",
+      });
+      await this.redis.set(`Order_${orderId}`, result);
+
+      return result;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(err);
+      throw new BadRequestException(
+        err.message || "An error occurred while updating the order.",
+      );
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
