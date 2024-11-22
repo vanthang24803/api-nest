@@ -16,11 +16,13 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Queue } from "bull";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, IsNull, Repository } from "typeorm";
 import { OrderRequest } from "./dto";
-import { EOrderStatus, NormalResponse } from "@/shared";
+import { BaseQuery, EOrderStatus, IPagination, NormalResponse } from "@/shared";
 import { RedisService } from "@/redis/redis.service";
 import { SendOrderMailHandler } from "@/bull/consumers/handler";
+import { plainToInstance } from "class-transformer";
+import { OrderResponse } from "./dto/order.response";
 
 @Injectable()
 export class OrdersService {
@@ -125,5 +127,106 @@ export class OrdersService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async findAllOrdersForUser(
+    user: User,
+    query: BaseQuery,
+  ): Promise<NormalResponse> {
+    const { limit, page } = query;
+
+    const cacheKey = `Orders_${user.email}_${limit}_${query}`;
+
+    const cacheData = await this.redis.get<NormalResponse>(cacheKey);
+
+    if (cacheData) return cacheData;
+
+    const [orders, total] = await this.orderRepository.findAndCount({
+      where: {
+        userId: user.id,
+        deletedAt: IsNull(),
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      relations: {
+        status: true,
+      },
+    });
+
+    const mappingData = await Promise.all(
+      orders.map(async (order) => {
+        const orderDetails = await this.orderDetailRepository.find({
+          where: {
+            orderId: order.id,
+          },
+        });
+
+        return {
+          ...order,
+          orderDetails,
+        } as Order;
+      }),
+    );
+
+    const result: IPagination<OrderResponse> = {
+      page,
+      limit,
+      size: total,
+      totalPage: Math.ceil(total / limit),
+      result: plainToInstance(OrderResponse, mappingData),
+    };
+
+    const response = this.util.buildSuccessResponse(result);
+
+    await this.redis.set(cacheKey, response);
+
+    return response;
+  }
+
+  async findAllOrdersForManager(query: BaseQuery): Promise<NormalResponse> {
+    const { limit, page } = query;
+
+    const cacheKey = `Manager_Orders_${limit}_${query}`;
+
+    const cacheData = await this.redis.get<NormalResponse>(cacheKey);
+
+    if (cacheData) return cacheData;
+
+    const [orders, total] = await this.orderRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      relations: {
+        status: true,
+      },
+    });
+
+    const mappingData = await Promise.all(
+      orders.map(async (order) => {
+        const orderDetails = await this.orderDetailRepository.find({
+          where: {
+            orderId: order.id,
+          },
+        });
+
+        return {
+          ...order,
+          orderDetails,
+        } as Order;
+      }),
+    );
+
+    const result: IPagination<OrderResponse> = {
+      page,
+      limit,
+      size: total,
+      totalPage: Math.ceil(total / limit),
+      result: plainToInstance(OrderResponse, mappingData),
+    };
+
+    const response = this.util.buildSuccessResponse(result);
+
+    await this.redis.set(cacheKey, response);
+
+    return response;
   }
 }

@@ -1,9 +1,9 @@
 import { JwtAuthGuard } from "@/common/guards";
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { OrdersService } from "./orders.service";
 import { OrderRequest } from "./dto";
-import { NormalResponse } from "@/shared";
-import { CurrentUser } from "@/common/decorators";
+import { BaseQuery, NormalResponse, Role } from "@/shared";
+import { CurrentUser, Roles } from "@/common/decorators";
 import { User } from "@/database/entities";
 
 @Controller("orders")
@@ -17,5 +17,16 @@ export class OrdersController {
     @Body() request: OrderRequest,
   ): Promise<NormalResponse> {
     return this.orderService.save(user, request);
+  }
+
+  @Get()
+  public async findAll(@CurrentUser() user: User, @Query() query: BaseQuery) {
+    return this.orderService.findAllOrdersForUser(user, query);
+  }
+
+  @Get("manager")
+  @Roles(Role.Manager, Role.Admin)
+  public async findAllOrderForManager(@Query() query: BaseQuery) {
+    return this.orderService.findAllOrdersForManager(query);
   }
 }
