@@ -1,2 +1,2 @@
 export * from "./product.request";
-export * from "./update-product.request";
+export * from "./updateProduct.request";

@@ -16,7 +16,7 @@ import { ProductRequest, UpdateProductRequest } from "./dto";
 import { ApiTags } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { BaseQuery, NormalResponse, Role } from "@/shared";
-import { JwtAuthGuard } from "@/common/guards";
+import { JwtAuthGuard, RolesGuard } from "@/common/guards";
 import { Roles } from "@/common/decorators";
 
 @Controller("products")
@@ -25,7 +25,7 @@ export class ProductsController {
   constructor(private readonly productService: ProductsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.Manager)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -62,7 +62,7 @@ export class ProductsController {
   }
 
   @Put(":id")
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.Manager)
   public async update(
     @Param("id") id: string,
@@ -72,7 +72,7 @@ export class ProductsController {
   }
 
   @Delete(":id")
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.Manager)
   public async remove(@Param("id") id: string): Promise<NormalResponse> {
     return this.productService.remove(id);
