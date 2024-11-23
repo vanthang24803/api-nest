@@ -1,7 +1,8 @@
-import { JwtAuthGuard } from "@/common/guards";
+import { JwtAuthGuard, RolesGuard } from "@/common/guards";
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -11,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { OrdersService } from "./orders.service";
 import { OrderRequest, UserUpdateOrder } from "./dto";
-import { BaseQuery, NormalResponse, Role } from "@/shared";
+import { BaseQuery, EOrderStatus, NormalResponse, Role } from "@/shared";
 import { CurrentUser, Roles } from "@/common/decorators";
 import { User } from "@/database/entities";
 import { ApiTags } from "@nestjs/swagger";
@@ -42,7 +43,7 @@ export class OrdersController {
   }
 
   @Get("manager")
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Manager, Role.Admin)
   public async findAllOrderForManager(@Query() query: BaseQuery) {
     return this.orderService.findAllOrdersForManager(query);
@@ -56,5 +57,24 @@ export class OrdersController {
     @Body() request: UserUpdateOrder,
   ) {
     return this.orderService.updateByUser(user, orderId, request);
+  }
+
+  @Put(":id/status")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Manager, Role.Admin)
+  public async updateStatusOrder(
+    @Param("id") orderId: string,
+    @Body("status") status: EOrderStatus,
+  ) {
+    return this.orderService.updateStatusOrderByManager(orderId, status);
+  }
+
+  @Delete(":id")
+  @UseGuards(JwtAuthGuard)
+  public async removeOrder(
+    @CurrentUser() user: User,
+    @Param("id") orderId: string,
+  ) {
+    return this.orderService.removeOrderByUser(user, orderId);
   }
 }

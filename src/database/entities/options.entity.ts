@@ -2,7 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
 import { CustomBaseEntity } from "./custom.entity";
 import { Product } from "./product.entity";
 import { EPayment } from "@/shared";
-import { OrderDetail } from "./order_detail.entity";
+import { OrderDetail } from "./orderDetail.entity";
 
 @Entity("options")
 export class Option extends CustomBaseEntity {

@@ -22,6 +22,7 @@ import { RedisService } from "@/redis/redis.service";
 import { SendOrderMailHandler } from "@/bull/consumers/handler";
 import { plainToInstance } from "class-transformer";
 import { OrderResponse, OrderRequest, UserUpdateOrder } from "./dto";
+import { ORDER_SUBJECT } from "@/shared/constants";
 
 @Injectable()
 export class OrdersService {
@@ -108,7 +109,7 @@ export class OrdersService {
       } as Order;
 
       await this.bull.add(OrderEventProcess.SendMaiOrder, {
-        subject: "Xác nhận đơn hàng",
+        subject: ORDER_SUBJECT.PENDING,
         message: orderMessage,
       } as SendOrderMailHandler);
 
@@ -318,7 +319,7 @@ export class OrdersService {
       } as Order;
 
       await this.bull.add(OrderEventProcess.SendMaiOrder, {
-        subject: "Đơn hàng của bạn đã được cập nhật",
+        subject: ORDER_SUBJECT.UPDATE,
         message: orderResult,
       } as SendOrderMailHandler);
 
@@ -336,6 +337,105 @@ export class OrdersService {
       );
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  async updateStatusOrderByManager(
+    orderId: string,
+    status: EOrderStatus,
+  ): Promise<NormalResponse> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    this.logger.debug(status);
+
+    try {
+      await this.redis.del(`Order_${orderId}`);
+
+      const existingOrder = await this.orderRepository.findOne({
+        where: { id: orderId, deletedAt: IsNull() },
+        relations: { status: true },
+      });
+
+      if (!existingOrder) {
+        throw new NotFoundException("Order not found!");
+      }
+
+      const orderDetails = await this.orderDetailRepository.find({
+        where: { orderId: existingOrder.id },
+      });
+
+      const order = {
+        ...existingOrder,
+        orderDetails,
+      } as Order;
+
+      const subject = ORDER_SUBJECT[EOrderStatus[status]];
+      if (!subject) {
+        throw new BadRequestException("Invalid order status!");
+      }
+
+      await this.handleUpdateStatus(existingOrder, status);
+
+      await this.bull.add(OrderEventProcess.SendMaiOrder, {
+        subject,
+        message: order,
+      } as SendOrderMailHandler);
+
+      await queryRunner.commitTransaction();
+
+      return this.util.buildSuccessResponse({
+        message: "Updated order status successfully!",
+      });
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(err);
+      throw new BadRequestException(
+        err.message || "An error occurred while updating the order.",
+      );
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  public async removeOrderByUser(
+    user: User,
+    orderId: string,
+  ): Promise<NormalResponse> {
+    const existingOrder = await this.orderRepository.findOne({
+      where: {
+        id: orderId,
+        deletedAt: IsNull(),
+        userId: user.id,
+      },
+    });
+
+    if (!existingOrder) throw new NotFoundException("Order not found!");
+
+    await this.orderRepository.softDelete(existingOrder.id);
+
+    return this.util.buildSuccessResponse({
+      message: "Deleted order successfully!",
+    });
+  }
+
+  private async handleUpdateStatus(
+    order: Order,
+    request: EOrderStatus,
+  ): Promise<void> {
+    const status = order.status.find((x) => x.status === request);
+
+    if (!status) {
+      await this.orderStatusRepository.save({
+        orderId: order.id,
+        status: request,
+      });
+    } else {
+      await this.orderStatusRepository.update(status.id, {
+        updatedAt: new Date(),
+      });
     }
   }
 }

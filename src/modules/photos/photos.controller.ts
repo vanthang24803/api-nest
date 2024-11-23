@@ -20,7 +20,7 @@ import {
   FileFieldsInterceptor,
   FileInterceptor,
 } from "@nestjs/platform-express";
-import { JwtAuthGuard } from "@/common/guards";
+import { JwtAuthGuard, RolesGuard } from "@/common/guards";
 import { Roles } from "@/common/decorators";
 
 @Controller("products/:productId/photos")
@@ -29,7 +29,7 @@ export class PhotosController {
   constructor(private readonly photoService: PhotosService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.Manager)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -66,7 +66,7 @@ export class PhotosController {
   }
 
   @Put(":photoId")
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.Manager)
   @UseInterceptors(FileInterceptor("photos"))
   public async update(
@@ -78,7 +78,7 @@ export class PhotosController {
   }
 
   @Delete()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.Manager)
   public async remove(
     @Param("productId") productId: string,

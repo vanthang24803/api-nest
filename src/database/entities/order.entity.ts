@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { CustomBaseEntity } from "./custom.entity";
 import { User } from "./user.entity";
-import { OrderStatus } from "./order_status.entity";
-import { OrderDetail } from "./order_detail.entity";
+import { OrderStatus } from "./orderStatus.entity";
+import { OrderDetail } from "./orderDetail.entity";
 import { EPayment } from "@/shared";
 
 @Entity("orders")
