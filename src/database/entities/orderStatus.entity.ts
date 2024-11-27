@@ -21,7 +21,7 @@ export class OrderStatus extends CustomBaseEntity {
   orderId!: string;
 
   @ManyToOne(() => Order, (order) => order.status, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   @JoinColumn({
     name: "order_id",

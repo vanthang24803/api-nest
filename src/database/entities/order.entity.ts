@@ -80,18 +80,20 @@ export class Order extends CustomBaseEntity {
   userId: string;
 
   @ManyToOne(() => User, (user) => user.orders, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   @JoinColumn({
     name: "user_id",
   })
   user: User;
 
-  @OneToMany(() => OrderStatus, (status) => status.order, { cascade: true })
+  @OneToMany(() => OrderStatus, (status) => status.order, {
+    onDelete: "CASCADE",
+  })
   status: OrderStatus[];
 
   @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.option, {
-    cascade: true,
+    onDelete: "CASCADE",
   })
   orderDetails: OrderDetail[];
 }

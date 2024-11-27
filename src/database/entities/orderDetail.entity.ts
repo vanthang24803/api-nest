@@ -73,7 +73,7 @@ export class OrderDetail extends CustomBaseEntity {
   orderId: string;
 
   @ManyToOne(() => Order, (order) => order.orderDetails, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   @JoinColumn({
     name: "order_id",
@@ -81,7 +81,7 @@ export class OrderDetail extends CustomBaseEntity {
   order: Order;
 
   @ManyToOne(() => Option, (option) => option.orderDetails, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   @JoinColumn({
     name: "option_id",

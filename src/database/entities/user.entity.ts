@@ -1,9 +1,17 @@
-import { Entity, Column, ManyToMany, JoinTable, OneToMany } from "typeorm";
+import {
+  Entity,
+  Column,
+  ManyToMany,
+  JoinTable,
+  OneToMany,
+  OneToOne,
+} from "typeorm";
 import { CustomBaseEntity } from "./custom.entity";
 import { Role } from "./role.entity";
 import { Token } from "./token.entity";
 import { Order } from "./order.entity";
 import { Review } from "./review.entity";
+import { Cart } from "./cart.entity";
 
 @Entity("users")
 export class User extends CustomBaseEntity {
@@ -48,14 +56,25 @@ export class User extends CustomBaseEntity {
   })
   email!: string;
 
-  @OneToMany(() => Token, (token) => token.user, { cascade: true })
+  @OneToMany(() => Token, (token) => token.user, {
+    onDelete: "CASCADE",
+  })
   tokens: Token[];
 
-  @OneToMany(() => Order, (order) => order.user, { cascade: true })
+  @OneToMany(() => Order, (order) => order.user, {
+    onDelete: "CASCADE",
+  })
   orders: Order[];
 
-  @OneToMany(() => Review, (review) => review.user, { cascade: true })
+  @OneToMany(() => Review, (review) => review.user, {
+    onDelete: "CASCADE",
+  })
   reviews: Review[];
+
+  @OneToOne(() => Cart, (cart) => cart.user, {
+    onDelete: "CASCADE",
+  })
+  cart: Cart;
 
   @ManyToMany(() => Role, (role) => role.User)
   @JoinTable({

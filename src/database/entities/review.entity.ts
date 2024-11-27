@@ -36,7 +36,7 @@ export class Review extends CustomBaseEntity {
   userId!: string;
 
   @ManyToOne(() => Product, (product) => product.reviews, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   @JoinColumn({
     name: "product_id",
@@ -44,7 +44,7 @@ export class Review extends CustomBaseEntity {
   product: Product;
 
   @ManyToOne(() => User, (user) => user.reviews, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   @JoinColumn({
     name: "user_id",

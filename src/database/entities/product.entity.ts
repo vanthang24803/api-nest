@@ -60,12 +60,18 @@ export class Product extends CustomBaseEntity {
   })
   catalogs: Catalog[];
 
-  @OneToMany(() => Option, (option) => option.product, { cascade: true })
+  @OneToMany(() => Option, (option) => option.product, {
+    onDelete: "CASCADE",
+  })
   options: Option[];
 
-  @OneToMany(() => Photo, (photo) => photo.product, { cascade: true })
+  @OneToMany(() => Photo, (photo) => photo.product, {
+    onDelete: "CASCADE",
+  })
   photos: Photo[];
 
-  @OneToMany(() => Review, (review) => review.product, { cascade: true })
+  @OneToMany(() => Review, (review) => review.product, {
+    onDelete: "CASCADE",
+  })
   reviews: Review[];
 }
