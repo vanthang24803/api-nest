@@ -95,7 +95,8 @@ export class UntilService {
   }
 
   combinePhotoPaths(fileName: string): string {
-    return `http://${this.minioHost}:${this.minioPort}/${this.minioBucketName}/${fileName}`;
+    const protocol = this.minioHost === "localhost" ? "http" : "https";
+    return `${protocol}://${this.minioHost}:${this.minioPort}/${this.minioBucketName}/${fileName}`;
   }
 
   getCurrentTime() {

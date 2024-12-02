@@ -17,7 +17,7 @@ export class Photo extends CustomBaseEntity {
   productId!: string;
 
   @ManyToOne(() => Product, (product) => product.photos, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   product: Product;
 }

@@ -3,6 +3,7 @@ import { CustomBaseEntity } from "./custom.entity";
 import { Product } from "./product.entity";
 import { EPayment } from "@/shared";
 import { OrderDetail } from "./orderDetail.entity";
+import { CartDetail } from "./cartDetail.entity";
 
 @Entity("options")
 export class Option extends CustomBaseEntity {
@@ -57,12 +58,17 @@ export class Option extends CustomBaseEntity {
   productId!: string;
 
   @ManyToOne(() => Product, (product) => product.options, {
-    onDelete: "CASCADE",
+    cascade: true,
   })
   product: Product;
 
   @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.option, {
-    cascade: true,
+    onDelete: "CASCADE",
   })
   orderDetails: OrderDetail[];
+
+  @OneToMany(() => CartDetail, (cartDetail) => cartDetail.option, {
+    onDelete: "CASCADE",
+  })
+  carts: CartDetail[];
 }

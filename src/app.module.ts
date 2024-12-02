@@ -15,6 +15,7 @@ import { RedisModule } from "@/redis/redis.module";
 import { MailModule } from "@/mail/mail.module";
 import { BullModule } from "@/bull/bull.module";
 import { OrdersModule } from "@/modules/orders/orders.module";
+import { CartModule } from "./modules/cart/cart.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,6 +33,7 @@ import { OrdersModule } from "@/modules/orders/orders.module";
     MailModule,
     BullModule,
     OrdersModule,
+    CartModule,
   ],
   providers: [
     {

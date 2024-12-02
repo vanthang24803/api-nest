@@ -127,6 +127,7 @@ export class ProductsService {
       result: products.map((product) =>
         plainToInstance(ProductResponse, {
           ...product,
+          thumbnail: this.util.combinePhotoPaths(product.thumbnail),
           catalogs: this.util.mapToDto(product.catalogs, CatalogResponse),
           options: this.util.mapToDto(product.options, OptionResponse),
           photos: this.util.mapToDto(
