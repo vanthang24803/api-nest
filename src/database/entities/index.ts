@@ -12,3 +12,4 @@ export * from "./orderStatus.entity";
 export * from "./review.entity";
 export * from "./cart.entity";
 export * from "./cartDetail.entity";
+export * from "./reviewPhoto.entity";

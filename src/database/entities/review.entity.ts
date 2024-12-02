@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { CustomBaseEntity } from "./custom.entity";
 import { Product } from "./product.entity";
 import { User } from "./user.entity";
+import { ReviewPhoto } from "./reviewPhoto.entity";
 
 @Entity("reviews")
 export class Review extends CustomBaseEntity {
@@ -50,4 +51,9 @@ export class Review extends CustomBaseEntity {
     name: "user_id",
   })
   user: User;
+
+  @OneToMany(() => ReviewPhoto, (photo) => photo.review, {
+    onDelete: "CASCADE",
+  })
+  photos: ReviewPhoto[];
 }
