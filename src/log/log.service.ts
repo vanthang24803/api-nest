@@ -1,20 +1,27 @@
 import * as winston from "winston";
 import { Injectable } from "@nestjs/common";
 import { WinstonModuleOptions } from "nest-winston";
+import { ConfigService } from "@nestjs/config";
+import { ENVIRONMENT } from "@/shared";
 
 @Injectable()
 export class LoggerFactory {
   private isProduction: boolean;
 
-  constructor() {
-    this.isProduction = process.env.NODE_ENV === "production";
+  constructor(private readonly config: ConfigService) {
+    this.isProduction =
+      this.config.get<string>("NODE_ENV") === ENVIRONMENT.PRODUCTION;
   }
 
-  registerLog(): WinstonModuleOptions | undefined {
+  public registerLog(): WinstonModuleOptions | undefined {
     if (!this.isProduction) {
       return undefined;
     }
 
+    return this.handlerLogger();
+  }
+
+  private handlerLogger(): WinstonModuleOptions {
     return {
       level: "info",
       format: winston.format.json(),

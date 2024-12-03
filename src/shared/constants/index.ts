@@ -7,3 +7,9 @@ export const ORDER_SUBJECT = {
   SUCCESS: "Đơn hàng đã được giao hàng thành công",
   RETURN: "Xác nhận yêu cầu trả hàng",
 };
+
+export const ENVIRONMENT = {
+  PRODUCTION: "production",
+  DEVELOPMENT: "development",
+  TEST: "test",
+};
