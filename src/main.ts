@@ -1,5 +1,4 @@
 import helmet from "helmet";
-import winston from "winston";
 import * as express from "express";
 import * as cookieParser from "cookie-parser";
 import { ValidationError } from "class-validator";
@@ -9,42 +8,24 @@ import { NestFactory } from "@nestjs/core";
 import { WinstonModule } from "nest-winston";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ValidationPipe, InternalServerErrorException } from "@nestjs/common";
+import { LoggerFactory } from "./log/log.service";
 
 async function bootstrap() {
-  const isProduction = process.env.NODE_ENV === "production";
-
   // !: Application
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
     bodyParser: true,
     rawBody: true,
-    logger: isProduction
-      ? WinstonModule.createLogger({
-          level: "info",
-          format: winston.format.json(),
-          transports: [
-            new winston.transports.File({
-              filename: "logs/error.log",
-              level: "error",
-            }),
-            new winston.transports.File({
-              filename: "logs/query.log",
-              level: "query",
-            }),
-            new winston.transports.File({
-              filename: "logs/info.log",
-              level: "info",
-            }),
-            new winston.transports.Console({
-              format: winston.format.combine(
-                winston.format.colorize(),
-                winston.format.json(),
-              ),
-            }),
-          ],
-        })
-      : undefined,
   });
+
+  // TODO: Logger
+  const loggerFactory = app.get(LoggerFactory);
+
+  const loggerOptions = loggerFactory.registerLog();
+
+  if (loggerOptions) {
+    app.useLogger(WinstonModule.createLogger(loggerOptions));
+  }
 
   // TODO: Cors
   app.enableCors();
@@ -65,7 +46,7 @@ async function bootstrap() {
     }),
   );
 
-  // TODO: Cookie
+  // TODO: Cookies
   app.use(cookieParser());
 
   app.use(helmet());
@@ -81,7 +62,7 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, documentFactory);
 
-  // TODO: Redirect
+  // TODO: Redirect API Docs
   app.getHttpAdapter().get("/", (_, res) => {
     res.redirect(301, "/docs");
   });
