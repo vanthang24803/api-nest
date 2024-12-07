@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsOptional, IsNumber, Min } from "class-validator";
+import { IsOptional, IsNumber, Min, IsString } from "class-validator";
 
 export abstract class BaseQuery {
   @IsOptional()
@@ -18,4 +18,14 @@ export abstract class BaseQuery {
     this.page = page;
     this.limit = limit;
   }
+}
+
+export class ReviewQuery extends BaseQuery {
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsNumber()
+  star?: string;
 }

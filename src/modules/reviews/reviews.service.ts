@@ -17,9 +17,8 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, In, Repository } from "typeorm";
-import { CreateReviewRequest } from "./dto";
-import { NormalResponse } from "@/shared";
-
+import { AuthorResponse, CreateReviewRequest, ReviewResponse } from "./dto";
+import { NormalResponse, ReviewQuery } from "@/shared";
 @Injectable()
 export class ReviewsService {
   constructor(
@@ -31,12 +30,6 @@ export class ReviewsService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-    @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
-    @InjectRepository(OrderDetail)
-    private readonly orderDetailRepository: Repository<OrderDetail>,
-    @InjectRepository(ReviewPhoto)
-    private readonly reviewPhotoRepository: Repository<ReviewPhoto>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -116,5 +109,127 @@ export class ReviewsService {
     });
 
     return this.util.buildCreatedResponse("Created review successfully!");
+  }
+
+  public async findAllReviewForProduct(productId: string, query: ReviewQuery) {
+    const existingProduct = await this.productRepository.findOne({
+      where: { id: productId },
+    });
+
+    if (!existingProduct) {
+      throw new NotFoundException("Product not found!");
+    }
+
+    const { star, limit = 10, page = 1, status } = query;
+
+    let allReviews = await this.reviewRepository.find({
+      where: { productId: existingProduct.id },
+      relations: ["photos", "user"],
+    });
+
+    if (status) {
+      allReviews = this.filterReviewsByStatus(allReviews, status);
+    }
+
+    if (star && !isNaN(Number(star))) {
+      const starValue = Number(star);
+      allReviews = this.filterReviewsByStar(allReviews, starValue);
+    }
+
+    const totalItems = allReviews.length;
+    const totalPage = Math.ceil(totalItems / limit);
+    const skip = (page - 1) * limit;
+
+    const paginatedReviews = this.paginateReviews(allReviews, skip, limit);
+
+    const averageStar =
+      totalItems > 0
+        ? allReviews.reduce((sum, review) => sum + review.star, 0) / totalItems
+        : 0;
+
+    return {
+      averageStar,
+      currentPage: page,
+      totalPage,
+      items: paginatedReviews.length,
+      totalItems,
+      result: paginatedReviews,
+    };
+  }
+
+  public async findOne(reviewId: string) {
+    const review = await this.reviewRepository.findOne({
+      where: { id: reviewId },
+      relations: ["photos", "user"],
+    });
+
+    if (!review) throw new NotFoundException("Review not found!");
+
+    return this.mapToReviewResponse(review);
+  }
+
+  public async remove(reviewId: string) {
+    const review = await this.reviewRepository.findOne({
+      where: {
+        id: reviewId,
+      },
+    });
+
+    if (!review) throw new NotFoundException("Review not found!");
+
+    await this.reviewRepository.softDelete(review.id);
+
+    return this.util.buildSuccessResponse("Deleted review successfully!");
+  }
+
+  private filterReviewsByStatus(reviews: Review[], status: string): Review[] {
+    switch (status) {
+      case "Lasted":
+        return reviews.sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+        );
+      case "Image":
+        return reviews.filter((review) => review.photos.length > 0);
+      default:
+        return reviews;
+    }
+  }
+
+  private filterReviewsByStar(reviews: Review[], starValue: number): Review[] {
+    const tolerance = 0.0001;
+    return reviews.filter(
+      (review) => Math.abs(review.star - starValue) < tolerance,
+    );
+  }
+
+  private paginateReviews(
+    reviews: Review[],
+    skip: number,
+    limit: number,
+  ): ReviewResponse[] {
+    return reviews
+      .slice(skip, skip + limit)
+      .map((review) => this.mapToReviewResponse(review));
+  }
+
+  private mapToReviewResponse(review: Review): ReviewResponse {
+    return {
+      id: review.id,
+      star: review.star,
+      content: review.content,
+      author: {
+        id: review.user.id,
+        fullName: `${review.user.firstName} ${review.user.lastName}`,
+        firstName: review.user.firstName,
+        lastName: review.user.lastName,
+        avatar: review.user.avatar,
+      } as AuthorResponse,
+      photos: review.photos.map((photo) => ({
+        id: photo.id,
+        url: photo.url,
+        createdAt: photo.createdAt,
+      })),
+      createdAt: review.createdAt,
+    };
   }
 }

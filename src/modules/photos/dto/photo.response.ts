@@ -11,5 +11,5 @@ export class PhotoResponse {
   createdAt: Date;
 
   @Exclude()
-  productId: string;
+  productId?: string;
 }
