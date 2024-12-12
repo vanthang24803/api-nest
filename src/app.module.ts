@@ -17,6 +17,7 @@ import { BullModule } from "@/bull/bull.module";
 import { OrdersModule } from "@/modules/orders/orders.module";
 import { CartModule } from "@/modules/cart/cart.module";
 import { HealthModule } from "@/health/health.module";
+import { TasksModule } from "@/tasks/tasks.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,6 +37,7 @@ import { HealthModule } from "@/health/health.module";
     OrdersModule,
     CartModule,
     HealthModule,
+    TasksModule,
   ],
   providers: [
     {
