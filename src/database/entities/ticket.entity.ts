@@ -38,6 +38,14 @@ export class Ticket extends CustomBaseEntity {
   quantity: number;
 
   @Column({
+    name: "discount",
+    type: "int",
+    nullable: false,
+    default: 0,
+  })
+  discount: number;
+
+  @Column({
     type: "bool",
     name: "is_expired",
     default: false,
