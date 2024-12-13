@@ -1,0 +1,5 @@
+export enum ETicket {
+  DISCOUNT_PERCENT,
+  DISCOUNT_PRICE,
+  FREE_SHIPPING,
+}
