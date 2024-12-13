@@ -19,6 +19,7 @@ import { CartModule } from "@/modules/cart/cart.module";
 import { HealthModule } from "@/health/health.module";
 import { TasksModule } from "@/tasks/tasks.module";
 import { TicketsModule } from "@/modules/tickets/tickets.module";
+import { GeminiModule } from "./gemini/gemini.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,6 +41,7 @@ import { TicketsModule } from "@/modules/tickets/tickets.module";
     HealthModule,
     TasksModule,
     TicketsModule,
+    GeminiModule,
   ],
   providers: [
     {
